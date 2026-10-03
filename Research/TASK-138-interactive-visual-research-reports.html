@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>调研报告可视化</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23f7f7f4'/%3E%3Cpath d='M18 12h20l10 10v30H18z' fill='none' stroke='%2317191c' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 34h16M25 42h10' stroke='%232c4cd0' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Atkinson+Hyperlegible+Next:wght@400;600&family=Atkinson+Hyperlegible+Mono:wght@500;600&family=Noto+Sans+SC:wght@400;600&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* tokens: Paper register */
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f4; --surface: #ffffff; --border: #e3e3dc; --border-bright: #8e8e8a;
+    --text: #17191c; --text-dim: #575c63; --accent: #2c4cd0; --accent-dim: rgba(44,76,208,.12);
+    --ok: #1d7443; --warn: #836000; --risk: #b3301d; --info: #1b6a94;
+    --node-top: var(--surface); --lift: rgb(18 22 20 / .12); --halo: 22%;
+    --font-display: 'Newsreader', 'Noto Serif SC', 'Songti SC', serif;
+    --font-body: 'Atkinson Hyperlegible Next', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    --font-mono: 'Atkinson Hyperlegible Mono', 'Noto Sans SC', ui-monospace, monospace;
+    --t-label: .75rem; --t-small: .875rem; --t-body: 1rem; --t-lead: 1.25rem; --t-h2: 1.625rem; --t-h1: clamp(2.25rem, 5.5vw, 4rem);
+    --s-1: .25rem; --s-2: .5rem; --s-3: .75rem; --s-4: 1rem; --s-5: 1.5rem; --s-6: 2rem; --s-7: 3rem; --s-8: 4.5rem;
+    --r-1: 4px; --r-2: 10px;
+    --ease: cubic-bezier(.16,1,.3,1); --fast: 150ms; --med: 300ms; --slow: 500ms;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111316; --surface: #181b1f; --border: #262a30; --border-bright: #62676c;
+      --text: #e8e8e3; --text-dim: #9ba1a9; --accent: #93a6ff; --accent-dim: rgba(147,166,255,.14);
+      --ok: #6cc492; --warn: #e3b94d; --risk: #f0806b; --info: #6fb8dc;
+      --node-top: color-mix(in srgb, var(--text) 7%, var(--surface)); --lift: rgb(0 0 0 / .45); --halo: 32%;
+    }
+  }
+
+  html { font-size: 17px; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 400 var(--t-body)/1.7 var(--font-body); text-wrap: pretty; font-kerning: normal; font-synthesis: none; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-dim); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  a { color: var(--accent); text-underline-offset: .2em; }
+
+  /* layout: sticky TOC on the left at wide widths, top bar below 1000px */
+  .shell { max-width: 78rem; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 1000px) { .shell { grid-template-columns: 11rem minmax(0, 1fr); gap: var(--s-6); padding: 0 var(--s-5); } }
+  nav.toc { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--border); padding: var(--s-2) var(--s-4); }
+  nav.toc ol { list-style: none; padding: 0; display: flex; gap: var(--s-4); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  nav.toc ol::-webkit-scrollbar { display: none; }
+  nav.toc a { font: 500 var(--t-small) var(--font-mono); color: var(--text-dim); text-decoration: none; white-space: nowrap; display: block; padding: var(--s-1) 0; }
+  nav.toc a.is-on { color: var(--accent); }
+  @media (min-width: 1000px) {
+    nav.toc { top: var(--s-8); align-self: start; border: 0; padding: 0; margin-top: var(--s-8); }
+    nav.toc ol { display: grid; gap: var(--s-1); mask-image: none; border-left: 1px solid var(--border); }
+    nav.toc a { padding: var(--s-1) var(--s-3); border-left: 2px solid transparent; margin-left: -1px; }
+    nav.toc a.is-on { border-left-color: var(--accent); }
+  }
+  main { max-width: 64rem; width: 100%; padding: var(--s-8) var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+  section, figure, header { min-width: 0; scroll-margin-top: var(--s-7); }
+  header { display: grid; gap: var(--s-4); }
+  header + figure { margin-top: calc(var(--s-6) - var(--s-8)); }
+  h1, h2 { text-box: trim-both cap alphabetic; font-family: var(--font-display); }
+  h1 { font-size: var(--t-h1); line-height: 1.15; font-weight: 600; letter-spacing: -.01em; text-wrap: balance; max-width: 15em; margin-bottom: var(--s-2); }
+  h2 { font-size: var(--t-h2); line-height: 1.3; font-weight: 600; text-wrap: balance; max-width: 26em; }
+  h3 { font-size: var(--t-body); line-height: 1.4; font-weight: 600; }
+  .kicker { display: grid; gap: var(--s-3); margin-bottom: var(--s-6); }
+  .eyebrow { display: flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; color: var(--accent); }
+  .eyebrow::before { content: ''; width: 1.25rem; height: 2px; background: currentColor; }
+  .ve-label { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); }
+  .lead { font-size: var(--t-lead); line-height: 1.6; color: var(--text-dim); max-width: 30em; }
+  .lead b { color: var(--text); font-weight: 600; }
+  .meta { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .prose { max-width: 36em; color: var(--text); margin-bottom: var(--s-5); }
+  code { font: .875em var(--font-mono); font-variant-ligatures: none; overflow-wrap: anywhere; }
+  sup + sup::before { content: ','; font: 600 .7em var(--font-mono); color: var(--text-dim); }
+  sup a { font: 600 .7em var(--font-mono); text-decoration: none; margin-left: 1px; }
+
+  .frame { background: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text) 13%, transparent) 1px, transparent 1.5px) 0 0 / 20px 20px, var(--bg); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-5); overflow-x: auto; }
+  figcaption { font-size: var(--t-body); color: var(--text-dim); margin-top: var(--s-3); max-width: 38em; }
+  .fig-n { font: 600 var(--t-label) var(--font-mono); color: var(--text); margin-right: var(--s-2); }
+  figure + figure { margin-top: var(--s-7); }
+
+  /* diagram kit */
+  .ve-svg { width: 100%; min-width: 760px; height: auto; display: block; font: 600 16px var(--font-body); }
+  .ve-n .sh { fill: url(#ve-node); stroke: var(--border-bright); stroke-width: 1.5; filter: drop-shadow(0 6px 14px var(--lift)); transition: stroke var(--fast) var(--ease), opacity var(--med) var(--ease); }
+  .ve-n .lid { fill: var(--node-top); }
+  .ve-n.is-key .sh { fill: color-mix(in srgb, var(--accent) 11%, var(--surface)); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) var(--halo), transparent)); }
+  .ve-n.is-dash .sh { stroke-dasharray: 6 5; }
+  .ve-n text { fill: var(--text); text-anchor: middle; dominant-baseline: central; font-weight: 600; }
+  .ve-n .sub { fill: var(--text-dim); font: 500 13px var(--font-mono); }
+  .ve-n .gl { fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linejoin: round; }
+  .ve-n.is-key .gl { stroke: var(--accent); }
+  .ve-e { fill: none; stroke: var(--text-dim); stroke-width: 1.75; marker-end: url(#ve-ah); }
+  .ve-e.is-hot { stroke: var(--accent); stroke-width: 2.75; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent)); }
+  .ve-e.is-async { stroke-dasharray: 6 5; }
+  .ve-el { fill: var(--text-dim); font: 500 14px var(--font-mono); text-anchor: middle; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+  .ve-el.l { text-anchor: end; } .ve-el.r { text-anchor: start; }
+
+  /* linked highlighting */
+  .ve-ref { text-decoration: underline dotted var(--text-dim) 1px; text-underline-offset: .22em; border-radius: var(--r-1); transition: background var(--fast) var(--ease); }
+  .ve-ref.is-lit { background: var(--accent-dim); text-decoration-color: var(--accent); }
+  svg [data-ref] { transition: opacity var(--med) var(--ease); }
+  svg.has-lit path[data-ref]:not(.is-lit), svg.has-lit g[data-ref]:not(.is-lit) .sh { opacity: .25; }
+  svg.has-lit g[data-ref]:not(.is-lit) text, svg.has-lit text[data-ref]:not(.is-lit) { fill: var(--text-dim); }
+  .ve-n.is-lit .sh { stroke: var(--accent); }
+  .ve-e.is-lit { stroke: var(--accent); }
+  .ve-el.is-lit { fill: var(--text); }
+  .case.is-lit, tr.is-lit td { border-color: var(--accent); }
+  tr.is-lit td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+
+  /* stepper */
+  .ve-steps [data-s] { transition: opacity var(--slow) var(--ease), stroke-dashoffset var(--slow) var(--ease); }
+  .ve-steps [data-s]:not(.on) { opacity: .15; }
+  .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 0; }
+  .ve-steps path[pathLength][data-s] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ve-steps path[pathLength][data-s].on { stroke-dashoffset: 0; }
+  .ve-steps .ve-n.now .sh { stroke: var(--accent); }
+  .ve-player { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2) var(--s-3); margin-top: var(--s-4); }
+  .ve-cap { grid-column: 1 / -1; list-style: none; padding: 0; min-height: 3.4em; }
+  .ve-cap li::before { content: attr(data-n); font: 600 var(--t-label) var(--font-mono); color: var(--accent); margin-right: var(--s-3); font-variant-numeric: tabular-nums; }
+  .ve-player input { accent-color: var(--accent); min-width: 0; }
+  button { font: 500 var(--t-small) var(--font-mono); color: var(--text); background: var(--surface); border: 1px solid var(--border-bright); border-radius: var(--r-1); padding: var(--s-2) var(--s-3); cursor: pointer; transition: border-color var(--fast) var(--ease); }
+  button:hover, button:focus-visible { border-color: var(--accent); }
+
+  /* waffle + file map */
+  .split { display: grid; gap: var(--s-5); grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 52rem) { .split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+  .ve-waffle { width: 100%; max-width: 34rem; height: auto; font: 500 13px var(--font-body); overflow: visible; }
+  .ve-waffle text { fill: var(--text-dim); dominant-baseline: central; }
+  .ve-waffle .em { fill: var(--text); font-weight: 600; }
+  .w-key { fill: var(--accent); }
+  .w-gen { fill: none; stroke: var(--text); stroke-width: 1.75; }
+  .w-dot { fill: var(--text); }
+  .w-off { fill: none; stroke: var(--border-bright); stroke-width: 1; }
+  .ann { fill: none; stroke: var(--text-dim); stroke-width: 1; }
+  .big { font: 600 2.75rem/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; text-box: trim-both cap alphabetic; }
+  .big .unit { font: 500 var(--t-body) var(--font-body); color: var(--text-dim); margin-left: var(--s-2); letter-spacing: 0; }
+  .fmap { list-style: none; padding: 0; font: 500 var(--t-small)/1.5 var(--font-mono); display: grid; gap: 0; border-top: 1px solid var(--border); }
+  .fmap li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-2) var(--s-4); align-items: baseline; padding: var(--s-2) 0; border-bottom: 1px solid var(--border); }
+  .fmap .p { overflow-wrap: anywhere; }
+  .fmap .d { grid-column: 1 / -1; font-family: var(--font-body); color: var(--text-dim); font-size: var(--t-small); }
+  .fmap .in { padding-left: var(--s-4); }
+
+  /* small multiples */
+  .cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); gap: var(--s-4); }
+  .case { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4); display: grid; gap: var(--s-3); align-content: start; transition: border-color var(--fast) var(--ease); }
+  .case[data-st=ok] { --st: var(--ok); } .case[data-st=warn] { --st: var(--warn); } .case[data-st=risk] { --st: var(--risk); } .case[data-st=info] { --st: var(--info); }
+  .case .kv { font: 500 var(--t-label)/1.6 var(--font-mono); color: var(--text-dim); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 var(--s-3); }
+  .case .kv dd { color: var(--text); margin: 0; overflow-wrap: anywhere; }
+  .ve-mini { width: 100%; height: auto; font: 600 15px var(--font-body); }
+  .ve-mini .ve-n .sh { filter: none; }
+  .ve-mini .ve-n .sub { font-size: 13px; }
+  .ve-mini .is-st.ve-e { stroke: var(--st); stroke-width: 2.75; }
+  .ve-mini .is-st .sh { stroke: var(--st); stroke-width: 2; }
+  .ve-mini .is-st .sub { fill: var(--st); }
+  .ve-mini .is-off .sh, .ve-mini .sh.is-off { stroke-dasharray: 5 4; }
+  .ve-mini .ve-e.is-off { opacity: .35; }
+
+  /* chips */
+  .chip { display: inline-flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); padding: 2px var(--s-2); border: 1px solid currentColor; border-radius: var(--r-1); white-space: nowrap; justify-self: start; }
+  .chip::before { content: ''; width: .5rem; height: .5rem; background: currentColor; }
+  .chip.ok { color: var(--ok); } .chip.ok::before { border-radius: 50%; }
+  .chip.warn { color: var(--warn); } .chip.warn::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .chip.risk { color: var(--risk); }
+  .chip.info { color: var(--info); } .chip.info::before { transform: rotate(45deg) scale(.85); }
+  .chip.na { color: var(--text-dim); } .chip.na::before { background: none; border: 1px solid currentColor; border-radius: 50%; }
+
+  /* table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-2); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 46rem; }
+  th { background: var(--surface); text-align: left; font: 600 var(--t-label) var(--font-mono); color: var(--text-dim); padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border-bright); white-space: nowrap; }
+  td { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border); vertical-align: top; font-size: var(--t-small); line-height: 1.5; transition: border-color var(--fast) var(--ease); }
+  tr:last-child td { border-bottom: 0; }
+  td b { font-size: var(--t-body); font-weight: 600; display: block; }
+  td b a { color: var(--text); }
+  .gh { color: var(--text-dim); font: 500 var(--t-label) var(--font-mono); }
+  .stars { width: 9rem; height: auto; display: block; font: 500 12px var(--font-mono); font-variant-numeric: tabular-nums; }
+  .stars rect { fill: var(--border-bright); transform-box: fill-box; transform-origin: left; transition: transform 900ms var(--ease) 150ms; }
+  .stars .hot { fill: var(--accent); }
+  .stars text { fill: var(--text-dim); dominant-baseline: central; }
+
+  /* scatter */
+  .ve-plot { width: 100%; min-width: 600px; height: auto; display: block; font: 600 15px var(--font-body); }
+  .ve-plot .axis { stroke: var(--border-bright); stroke-width: 1; fill: none; marker-end: url(#ve-ah); }
+  .ve-plot .grid { stroke: var(--border); stroke-width: 1; }
+  .ve-plot .ax { fill: var(--text-dim); font: 500 13px var(--font-mono); }
+  .ve-plot .pt { fill: var(--surface); stroke: var(--border-bright); stroke-width: 1.75; }
+  .ve-plot .pt.is-key { fill: color-mix(in srgb, var(--accent) 14%, var(--surface)); stroke: var(--accent); stroke-width: 2.5; filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) var(--halo), transparent)); }
+  .ve-plot .lb { fill: var(--text); }
+  .ve-plot .sub { fill: var(--text-dim); font: 500 13px var(--font-mono); }
+
+  /* corrections */
+  .ve-bars { width: 100%; max-width: 36rem; height: auto; font: 500 13px var(--font-mono); overflow: visible; }
+  .ve-bars text { fill: var(--text-dim); dominant-baseline: central; }
+  .ve-bars .t { fill: var(--text); font: 600 15px var(--font-body); }
+  .ve-bars rect { fill: var(--border-bright); transform-box: fill-box; transform-origin: left; transition: transform 900ms var(--ease) 150ms; }
+  .ve-bars rect.old { fill: none; stroke: var(--border-bright); stroke-dasharray: 4 3; }
+  .ve-bars .hot { fill: var(--accent); }
+  .ve-bars .hot + text { fill: var(--text); }
+
+  .gaps { display: grid; grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr)); gap: var(--s-4); }
+  .gaps .case ul { padding-left: 1.1em; font-size: var(--t-small); line-height: 1.6; display: grid; gap: var(--s-1); }
+
+  .sources { border-top: 1px solid var(--border); padding-top: var(--s-4); display: grid; gap: var(--s-3); }
+  .sources ol { padding-left: 2em; font-size: var(--t-small); display: grid; gap: var(--s-1); }
+  .sources li { overflow-wrap: anywhere; }
+
+  .js-motion main > * { transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease); }
+  .js-motion main > :not(.in) { opacity: 0; transform: translateY(1rem); }
+  .js-motion main > :not(.in) .ve-bars rect, .js-motion main > :not(.in) .stars rect { transform: scaleX(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --border: #e3e3dc; --border-bright: #8e8e8a; --text: #17191c; --text-dim: #575c63; --accent: #2c4cd0; --ok: #1d7443; --warn: #836000; --risk: #b3301d; --info: #1b6a94; --node-top: #fff; }
+    nav.toc, .ve-player button, .ve-player input { display: none; }
+    .shell { display: block; }
+    .frame { overflow: visible; background: #fff; } .ve-svg, .ve-plot { min-width: 0; }
+    .frame, .case, tr { break-inside: avoid; } h2 { break-after: avoid; }
+    svg * { filter: none !important; }
+    .js-motion main > * { opacity: 1 !important; transform: none !important; }
+    .js-motion .ve-bars rect, .js-motion .stars rect { transform: none !important; }
+    .ve-steps [data-s]:not(.on), .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 1; }
+    .ve-steps path[pathLength][data-s] { stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ve-ah" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
+    <linearGradient id="ve-node" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--node-top)"/><stop offset="1" style="stop-color:var(--surface)"/></linearGradient>
+  </defs>
+</svg>
+<div class="shell">
+<nav class="toc" aria-label="章节">
+  <ol>
+    <li><a href="#answer">结论</a></li>
+    <li><a href="#dan">IndyDevDan</a></li>
+    <li><a href="#candidates">候选与做法</a></li>
+    <li><a href="#open">怎么打开</a></li>
+    <li><a href="#fixes">更正</a></li>
+    <li><a href="#gaps">缺口</a></li>
+    <li><a href="#sources">来源</a></li>
+  </ol>
+</nav>
+<main>
+
+  <header id="answer">
+    <p class="eyebrow">TASK-138 · 调研报告</p>
+    <h1>报告旁加一份自包含 HTML，在本地打开</h1>
+    <p class="lead">IndyDevDan <b>没有公开</b>做 cmux guide 的工具。最近的起点是他公开的 <span class="ve-ref" data-ref="agent" tabindex="0">htmlspec skill</span>；生成失败时用 <span class="ve-ref" data-ref="markmap" tabindex="0">markmap</span> 兜底；用户在 <span class="ve-ref" data-ref="clone" tabindex="0">本地 docs clone</span> 里打开。</p>
+    <p class="meta">类型 web · 2026-10-03 · 两轮 /deep-research · 推荐方案为本文综合</p>
+  </header>
+
+  <figure class="ve-steps">
+    <div class="frame">
+      <svg class="ve-svg" viewBox="0 10 960 360" role="img" aria-label="推荐流程：Researcher 写 report.md；agent 读它并按改造后的 htmlspec 写同名 .html；失败时 markmap 生成 mindmap.html；文件 push 到 private_docs，issue 挂两条链接；用户 git pull 到本地 docs clone，用浏览器 open。">
+        <path class="ve-e" data-s="1" pathLength="1" d="M220 70H260"/>
+        <text class="ve-el" data-s="1" x="240" y="56">写</text>
+        <path class="ve-e is-hot" data-s="2" data-ref="agent" pathLength="1" d="M460 70H500"/>
+        <text class="ve-el" data-s="2" data-ref="agent" x="480" y="56">读</text>
+        <path class="ve-e is-hot" data-s="2" data-ref="agent" pathLength="1" d="M700 70H740"/>
+        <text class="ve-el" data-s="2" data-ref="agent" x="720" y="56">写</text>
+        <path class="ve-e is-async" data-s="3" data-ref="markmap" d="M360 110V190H500"/>
+        <text class="ve-el r" data-s="3" data-ref="markmap" x="370" y="160">失败或省 token</text>
+        <path class="ve-e is-async" data-s="3" data-ref="markmap" d="M700 190H790V110"/>
+        <text class="ve-el l" data-s="3" data-ref="markmap" x="782" y="145">或 mindmap</text>
+        <path class="ve-e is-hot" data-s="4" pathLength="1" d="M880 110V280"/>
+        <text class="ve-el l" data-s="4" x="872" y="236">push</text>
+        <path class="ve-e" data-s="4" pathLength="1" d="M100 110V280"/>
+        <text class="ve-el r" data-s="4" x="110" y="200">挂 .md / .html 链接</text>
+        <path class="ve-e is-hot" data-s="5" data-ref="clone" pathLength="1" d="M800 325H660"/>
+        <text class="ve-el" data-s="5" data-ref="clone" x="730" y="311">git pull</text>
+        <path class="ve-e is-hot" data-s="5" data-ref="clone" pathLength="1" d="M500 325H420"/>
+        <text class="ve-el" data-s="5" data-ref="clone" x="460" y="311">open</text>
+
+        <g class="ve-n" data-s="1" transform="translate(20 30)"><rect class="sh" width="200" height="80" rx="6"/><text x="100" y="30">Researcher run</text><text class="sub" x="100" y="54">现有流程</text></g>
+        <g class="ve-n" data-s="1" transform="translate(260 30)"><rect class="sh" width="200" height="80" rx="6"/><path class="gl" transform="translate(12 12)" d="M0 0h10l4 4v12H0zM3 8h8M3 12h6"/><text x="100" y="30">&lt;同名&gt;.md</text><text class="sub" x="100" y="54">报告正文 · 不变</text></g>
+        <g class="ve-n is-key" data-s="2" data-ref="agent" transform="translate(500 30)"><rect class="sh" width="200" height="80" rx="6"/><path class="gl" transform="translate(12 12)" d="M8 0l7 4v8l-7 4-7-4V4z"/><text x="100" y="30">agent 写 HTML</text><text class="sub" x="100" y="54">改造后的 htmlspec</text></g>
+        <g class="ve-n" data-s="2" data-ref="agent" transform="translate(740 30)"><rect class="sh" width="200" height="80" rx="6"/><path class="gl" transform="translate(12 12)" d="M0 0h10l4 4v12H0zM3 9l2 2-2 2M8 13h3"/><text x="100" y="30">&lt;同名&gt;.html</text><text class="sub" x="100" y="54">CSS/JS/SVG 内联</text></g>
+        <g class="ve-n is-dash" data-s="3" data-ref="markmap" transform="translate(500 160)"><rect class="sh" width="200" height="60" rx="6"/><text x="100" y="20">markmap 兜底</text><text class="sub" x="100" y="42">--no-open --offline</text></g>
+        <g class="ve-n" data-s="4" transform="translate(20 280)"><rect class="sh" width="160" height="70" rx="6"/><text x="80" y="26">Linear issue</text><text class="sub" x="80" y="48">两条链接</text></g>
+        <g class="ve-n" data-s="4" transform="translate(800 280)"><path class="sh" d="M0 10V60A80 10 0 0 0 160 60V10"/><ellipse class="sh lid" cx="80" cy="10" rx="80" ry="10"/><text x="80" y="36">private_docs</text><text class="sub" x="80" y="56">私有 docs repo</text></g>
+        <g class="ve-n" data-s="5" data-ref="clone" transform="translate(500 280)"><path class="sh" d="M0 10V60A80 10 0 0 0 160 60V10"/><ellipse class="sh lid" cx="80" cy="10" rx="80" ry="10"/><text x="80" y="36">docs clone</text><text class="sub" x="80" y="56">用户本机</text></g>
+        <g class="ve-n" data-s="5" data-ref="clone" transform="translate(260 280)"><rect class="sh" width="160" height="70" rx="6"/><path class="gl" transform="translate(12 12)" d="M0 1h16v12H0zM0 4.5h16"/><text x="80" y="26">浏览器</text><text class="sub" x="80" y="48">本地文件</text></g>
+      </svg>
+    </div>
+    <div class="ve-player">
+      <ol class="ve-cap">
+        <li data-n="1/5">Researcher 照旧写 Markdown 报告。</li>
+        <li data-n="2/5">同一 run 里，agent 读报告，按改造后的 htmlspec 写同名 .html：结论、对比表、图表、可展开细节，资源全部内联。</li>
+        <li data-n="3/5">生成失败或不想花 token：<code>npx -y markmap-cli --no-open --offline -o &lt;同名&gt;.mindmap.html &lt;同名&gt;.md</code>。</li>
+        <li data-n="4/5">两个文件一起 push 到 docs repo；issue 上挂 .md 和 .html 两条链接。</li>
+        <li data-n="5/5">GitHub 网页只显示 HTML 源码（未核实），所以用户 <code>git pull</code> 后 <code>open Research/&lt;同名&gt;.html</code>。</li>
+      </ol>
+      <button data-go="-1" aria-label="上一步">←</button>
+      <button data-play>播放</button>
+      <input type="range" min="0" value="0" aria-label="步骤">
+      <button data-go="1" aria-label="下一步">→</button>
+    </div>
+    <figcaption><span class="fig-n">Fig. 1</span>只多一个文件、一条命令兜底，不需要托管服务。粗线是主路径，虚线是兜底。</figcaption>
+  </figure>
+
+  <section id="dan">
+    <div class="kicker"><p class="eyebrow">问题 2 · IndyDevDan 的工具</p><h2>他的 GitHub 里没有做 cmux guide 的生成器</h2></div>
+    <p class="prose">视频里他只说让前沿 agent “build out a comprehensive HTML file”，按 “incremental tier-based explanation” 分层讲解，没有提产品或 skill 名<sup><a href="#src-1">1</a></sup>。</p>
+
+    <figure>
+      <div class="frame">
+        <div class="split">
+          <div style="display:grid;gap:var(--s-3);align-content:start">
+            <span class="ve-label">disler 公开仓库 · 2026-10-03</span>
+            <span class="big"><span data-count="55">55</span><span class="unit">个</span></span>
+            <span class="big" style="color:var(--accent)"><span data-count="0">0</span><span class="unit">个公开 guide 生成器</span></span>
+          </div>
+          <svg class="ve-waffle" viewBox="0 0 600 100" role="img" aria-label="55 个公开仓库：1 个 learning 仓库只有产物；2 个仓库带 HTML 生成 skill，面向开发计划；其余 52 个无关。">
+<rect class="w-off" x="1.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="21.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="41.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="61.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="81.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="101.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="121.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="141.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="161.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="181.5" y="1.5" width="13" height="13" rx="2"/>
+<rect class="w-key" x="200" y="0" width="16" height="16" rx="2"/>
+<rect class="w-off" x="1.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="21.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="41.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="61.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="81.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="101.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="121.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="141.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="161.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="181.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="201.5" y="21.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="1.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="21.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="41.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="61.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="81.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="101.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="121.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="141.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="161.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="181.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="201.5" y="41.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="1.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="21.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="41.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="61.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="81.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="101.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="121.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="141.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="161.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="181.5" y="61.5" width="13" height="13" rx="2"/>
+<rect class="w-gen" x="201" y="61" width="14" height="14" rx="2"/><circle class="w-dot" cx="208" cy="68" r="3"/>
+<rect class="w-off" x="1.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="21.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="41.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="61.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="81.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="101.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="121.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="141.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="161.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-off" x="181.5" y="81.5" width="13" height="13" rx="2"/>
+<rect class="w-gen" x="201" y="81" width="14" height="14" rx="2"/><circle class="w-dot" cx="208" cy="88" r="3"/>
+            <path class="ann" d="M220 8H236"/><text class="em" x="244" y="8">learning-cmux-with-agents</text>
+            <text x="244" y="27">只有产物，没有生成方法</text>
+            <path class="ann" d="M220 68H228V88H220M228 78H236"/><text class="em" x="244" y="70">planf3 · pi-agent-observability</text>
+            <text x="244" y="89">带 HTML 生成 skill，面向开发计划</text>
+          </svg>
+        </div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 2</span>每格一个仓库。实心格是唯一的 learning-* 仓库；带点的两格有同类 skill，但不是做 guide 用的<sup><a href="#src-4">4</a></sup>。</figcaption>
+    </figure>
+
+    <figure>
+      <div class="frame" style="background:var(--surface)">
+        <p class="ve-label" style="margin-bottom:var(--s-3)">disler/learning-cmux-with-agents · 1 次提交 · 2026-06-29 · MIT · 115 star</p>
+        <ul class="fmap">
+          <li><span class="p">guide/index.html</span><span class="chip info">产物</span><span class="d">995 行单页；head 只有 charset、viewport；无生成器注释</span></li>
+          <li><span class="p in">guide/images/ · cmux-guide.pdf</span><span class="chip info">产物</span><span class="d">10 张 webp、svg，加一份 PDF</span></li>
+          <li><span class="p">.claude/agents/</span><span class="chip na">无生成方法</span><span class="d">build-be · build-fe · lead · plan · test</span></li>
+          <li><span class="p">.claude/commands/</span><span class="chip na">无生成方法</span><span class="d">cmux-did-spawn · cmux-fresh · prime · spawn-fs-team；只有 prime.md 提到 guide：让 agent 去读它</span></li>
+          <li><span class="p">.claude/skills/cmux</span><span class="chip na">无生成方法</span><span class="d">cmux 编排</span></li>
+          <li><span class="p">prompts/ · ai_docs/</span><span class="chip na">无生成方法</span><span class="d">31 条练习 + PATTERNS-read-and-notify.md</span></li>
+          <li><span class="p">justfile → guide</span><span class="chip na">无生成方法</span><span class="d"><code>python3 -m http.server</code></span></li>
+        </ul>
+      </div>
+      <figcaption><span class="fig-n">Fig. 3</span>仓库里每个可能藏 prompt 的地方都查过，没有一处写了 guide 是怎么生成的<sup><a href="#src-2">2</a></sup><sup><a href="#src-3">3</a></sup>。</figcaption>
+    </figure>
+
+    <figure>
+      <div class="cases">
+        <div class="case" data-st="risk"><span class="chip risk">生成器未公开</span><h3>cmux guide</h3>
+          <svg class="ve-mini" viewBox="0 0 240 130" role="img" aria-label="cmux guide：输入和生成方法未知，只有 HTML 产物。">
+            <path class="ve-e is-off" d="M68 58H92"/><path class="ve-e" d="M148 58H172"/>
+            <g class="ve-n is-st"><rect class="sh is-off" x="2" y="36" width="66" height="44" rx="5"/><text x="35" y="58">?</text></g>
+            <g class="ve-n"><rect class="sh" x="92" y="36" width="56" height="44" rx="5"/><text x="120" y="58">agent</text></g>
+            <g class="ve-n"><rect class="sh" x="172" y="36" width="66" height="44" rx="5"/><text x="205" y="50">HTML</text><text class="sub" x="205" y="68">guide</text></g>
+          </svg>
+          <dl class="kv"><dt>仓库</dt><dd>learning-cmux-with-agents</dd><dt>图片</dt><dd>10 张本地文件</dd></dl></div>
+        <div class="case" data-st="warn"><span class="chip warn">图片要 key</span><h3>planf3</h3>
+          <svg class="ve-mini" viewBox="0 0 240 130" role="img" aria-label="planf3：prompt 加代码库进 agent，写出单文件 HTML 计划；每节一张 gpt-image-2 图，没有 key 时图片位留空。">
+            <path class="ve-e" d="M68 58H92"/><path class="ve-e" d="M148 58H172"/><path class="ve-e is-st is-async" d="M120 94V80"/>
+            <g class="ve-n"><rect class="sh" x="2" y="36" width="66" height="44" rx="5"/><text x="35" y="50">prompt</text><text class="sub" x="35" y="68">+代码库</text></g>
+            <g class="ve-n"><rect class="sh" x="92" y="36" width="56" height="44" rx="5"/><text x="120" y="58">agent</text></g>
+            <g class="ve-n"><rect class="sh" x="172" y="36" width="66" height="44" rx="5"/><text x="205" y="50">HTML</text><text class="sub" x="205" y="68">计划</text></g>
+            <g class="ve-n is-st"><rect class="sh is-off" x="70" y="94" width="100" height="32" rx="5"/><text class="sub" x="120" y="110">图像 · 可缺省</text></g>
+          </svg>
+          <dl class="kv"><dt>用法</dt><dd>/planf3 &lt;prompt&gt;</dd><dt>输出</dt><dd>specs/*.html</dd></dl></div>
+        <div class="case" data-st="ok" data-ref="agent"><span class="chip ok">推荐起点</span><h3>htmlspec</h3>
+          <svg class="ve-mini" viewBox="0 0 240 130" role="img" aria-label="htmlspec：prompt 加代码库进 agent，写出无图、无 CDN 的单文件 HTML。">
+            <path class="ve-e" d="M68 58H92"/><path class="ve-e is-st" d="M148 58H172"/>
+            <g class="ve-n"><rect class="sh" x="2" y="36" width="66" height="44" rx="5"/><text x="35" y="50">prompt</text><text class="sub" x="35" y="68">+代码库</text></g>
+            <g class="ve-n"><rect class="sh" x="92" y="36" width="56" height="44" rx="5"/><text x="120" y="58">agent</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="172" y="36" width="66" height="44" rx="5"/><text x="205" y="50">HTML</text><text class="sub" x="205" y="68">无图</text></g>
+          </svg>
+          <dl class="kv"><dt>仓库</dt><dd>pi-agent-observability</dd><dt>输出</dt><dd>specs/htmlspec-&lt;slug&gt;.html</dd></dl></div>
+        <div class="case" data-st="warn"><span class="chip warn">必须有 key</span><h3>htmlvspec</h3>
+          <svg class="ve-mini" viewBox="0 0 240 130" role="img" aria-label="htmlvspec：同 htmlspec，但必须用 gpt-image-2 生成最多 10 张图；缺 OPENAI_API_KEY 时停下问人。">
+            <path class="ve-e" d="M68 58H92"/><path class="ve-e" d="M148 58H172"/><path class="ve-e is-st" d="M120 94V80"/>
+            <g class="ve-n"><rect class="sh" x="2" y="36" width="66" height="44" rx="5"/><text x="35" y="50">prompt</text><text class="sub" x="35" y="68">+代码库</text></g>
+            <g class="ve-n"><rect class="sh" x="92" y="36" width="56" height="44" rx="5"/><text x="120" y="58">agent</text></g>
+            <g class="ve-n"><rect class="sh" x="172" y="36" width="66" height="44" rx="5"/><text x="205" y="50">HTML</text><text class="sub" x="205" y="68">带图</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="70" y="94" width="100" height="32" rx="5"/><text class="sub" x="120" y="110">图像 · 必需</text></g>
+          </svg>
+          <dl class="kv"><dt>仓库</dt><dd>pi-agent-observability</dd><dt>缺 key</dt><dd>停下问人</dd></dl></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 4</span>他公开的三个 skill 都写开发计划；要做调研指南，得把模板换成指南分节、输入换成报告路径（推断，未测试）<sup><a href="#src-5">5</a></sup><sup><a href="#src-6">6</a></sup>。</figcaption>
+    </figure>
+  </section>
+
+  <section id="candidates">
+    <div class="kicker"><p class="eyebrow">问题 1、3 · 候选与做法</p><h2>agent 写的 HTML 最丰富，确定性渲染最可靠</h2></div>
+
+    <figure>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>候选</th><th>形态 · 输入</th><th>无人值守</th><th>离线自包含</th><th>star · 2026-10-03（对数）</th></tr></thead>
+          <tbody>
+            <tr data-ref="agent"><td><b><a href="#src-6">htmlspec</a></b><span class="gh">disler</span></td><td>单页 HTML 计划 · prompt + 代码库</td><td><span class="chip ok">是</span></td><td><span class="chip ok">是</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="145 star"><rect class="hot" y="3" width="52" height="10" rx="2"/><text x="58" y="8">145</text></svg></td></tr>
+            <tr><td><b><a href="#src-5">planf3</a></b><span class="gh">disler</span></td><td>单页 HTML 计划，每节一张 AI 图</td><td><span class="chip warn">缺 key 无图</span></td><td><span class="chip ok">是</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="148 star"><rect y="3" width="52" height="10" rx="2"/><text x="58" y="8">148</text></svg></td></tr>
+            <tr><td><b><a href="#src-7">visual-explainer</a></b><span class="gh">nicobailon</span></td><td>单页 HTML 或幻灯片 · agent 生成</td><td><span class="chip ok">是</span></td><td><span class="chip risk">依赖 CDN</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="10216 star"><rect y="3" width="96" height="10" rx="2"/><text x="102" y="8">10.2k</text></svg></td></tr>
+            <tr><td><b><a href="#src-8">handbook-visual-explainer</a></b><span class="gh">nikiforovall</span></td><td>同上，7 个命令</td><td><span class="chip ok">是</span></td><td><span class="chip risk">依赖 CDN</span></td><td><span class="gh">未核实</span></td></tr>
+            <tr><td><b><a href="#src-9">html-explainer</a></b><span class="gh">ds-vibe</span></td><td>滚动页或幻灯片 · agent 生成</td><td><span class="chip risk">先问一轮</span></td><td><span class="chip ok">是</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="15 star"><rect y="3" width="29" height="10" rx="2"/><text x="35" y="8">15</text></svg></td></tr>
+            <tr><td><b><a href="#src-10">codebase-explainer</a></b><span class="gh">tpgiv1995</span></td><td>带动画的代码库讲解页 · 仅作 prompt 参考</td><td><span class="chip ok">是</span></td><td><span class="chip warn">Google Fonts</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="0 star"><text x="0" y="8">0</text></svg></td></tr>
+            <tr data-ref="markmap"><td><b><a href="#src-11">markmap-cli</a></b><span class="gh">markmap</span></td><td>交互式思维导图 · Markdown</td><td><span class="chip ok">是</span></td><td><span class="chip ok">加 --offline</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="13100 star"><rect class="hot" y="3" width="98" height="10" rx="2"/><text x="104" y="8">13.1k</text></svg></td></tr>
+            <tr><td><b><a href="#src-13">Quarto</a></b></td><td>HTML 文档 · .qmd / Markdown</td><td><span class="chip ok">是</span></td><td><span class="chip ok">embed-resources</span></td><td><span class="gh">未核实</span></td></tr>
+            <tr><td><b><a href="#src-14">Observable Framework</a></b></td><td>数据报告站点 · Markdown + JS</td><td><span class="chip ok">构建</span></td><td><span class="chip na">未核实</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="约 3700 star"><rect y="3" width="85" height="10" rx="2"/><text x="91" y="8">3.7k</text></svg></td></tr>
+            <tr><td><b><a href="#src-15">marimo</a></b></td><td>notebook 导出 HTML · .py notebook</td><td><span class="chip ok">是</span></td><td><span class="chip warn">WASM 要 HTTP</span></td><td><span class="gh">未核实</span></td></tr>
+            <tr><td><b><a href="#src-16">DeerFlow 2.0</a></b><span class="gh">bytedance</span></td><td>调研 agent，自带网页、图表 skill</td><td><span class="chip ok">--print</span></td><td><span class="chip na">未核实</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="约 83000 star"><rect y="3" width="118" height="10" rx="2"/><text x="124" y="8">83k</text></svg></td></tr>
+            <tr><td><b><a href="#src-17">STORM</a></b></td><td>文字文章，无可视化</td><td><span class="chip ok">是</span></td><td><span class="chip na">不适用</span></td><td><span class="gh">未核实</span></td></tr>
+            <tr><td><b><a href="#src-18">OpenDeepResearch</a></b></td><td>Markdown/PDF + PNG 图；可选 Plotly</td><td><span class="chip ok">是</span></td><td><span class="chip na">不适用</span></td><td><svg class="stars" viewBox="0 0 160 16" role="img" aria-label="1 star"><rect y="3" width="7" height="10" rx="2"/><text x="13" y="8">1</text></svg></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figcaption><span class="fig-n">Fig. 5</span>能无人值守又完全离线的，只有 htmlspec、planf3、markmap 和 Quarto。条长按 star 取对数；高亮两行是推荐组合。对比为本文综合。</figcaption>
+    </figure>
+
+    <figure>
+      <div class="frame">
+        <svg class="ve-plot" viewBox="0 0 720 340" role="img" aria-label="示意图：横轴无人值守可靠性，纵轴形式丰富度。agent 写 HTML 丰富度高、可靠性中；现成框架两者都中等偏高；markmap 可靠性高、丰富度低。推荐 agent 写 HTML，失败时退到 markmap。">
+          <path class="grid" d="M80 160H680M380 30V290"/>
+          <path class="axis" d="M80 290H690"/><path class="axis" d="M80 290V20"/>
+          <text class="ax" x="690" y="314" text-anchor="end">无人值守可靠性 →</text>
+          <text class="ax" x="90" y="24">↑ 形式丰富度</text>
+          <path class="ve-e is-async" d="M262 98C380 110 470 170 520 236"/>
+          <text class="ve-el" x="430" y="140">失败时兜底</text>
+          <circle class="pt is-key" data-ref="agent" cx="240" cy="90" r="14"/>
+          <text class="lb" x="262" y="66">agent 写单页 HTML</text><text class="sub" x="262" y="40">token 多 · 维护一份 skill</text>
+          <rect class="pt" x="476" y="140" width="26" height="26" rx="3"/>
+          <text class="lb" x="514" y="148">现成框架</text><text class="sub" x="514" y="170">要装工具链 · 维护中</text>
+          <path class="pt" data-ref="markmap" d="M540 232L556 260H524Z"/>
+          <text class="lb" x="568" y="244">markmap</text><text class="sub" x="568" y="266">成本≈0 · 只有结构</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 6</span>示意（本文综合，定性）：用模板约束 agent 是丰富和可靠之间的折中；唯一的直接证据是 OpenDeepResearch 两种图表模式的对比<sup><a href="#src-18">18</a></sup>。</figcaption>
+    </figure>
+  </section>
+
+  <section id="open">
+    <div class="kicker"><p class="eyebrow">问题 4 · 怎么打开</p><h2>私密又免费的打开方式只有本地文件</h2></div>
+    <figure>
+      <div class="cases">
+        <div class="case" data-st="warn"><span class="chip warn">未核实</span><h3>GitHub 网页</h3>
+          <svg class="ve-mini" viewBox="0 0 240 90" role="img" aria-label="私有 repo 经 GitHub 网页查看，只显示 HTML 源码。">
+            <path class="ve-e" d="M62 45H80"/><path class="ve-e is-st" d="M158 45H176"/>
+            <g class="ve-n"><path class="sh" d="M2 23V67A30 6 0 0 0 62 67V23"/><ellipse class="sh lid" cx="32" cy="23" rx="30" ry="6"/><text class="sub" x="32" y="48">repo</text></g>
+            <g class="ve-n"><rect class="sh" x="80" y="23" width="78" height="44" rx="5"/><text x="119" y="37">GitHub</text><text class="sub" x="119" y="55">网页</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="176" y="23" width="62" height="44" rx="5"/><text x="207" y="37">源码</text><text class="sub" x="207" y="55">非页面</text></g>
+          </svg></div>
+        <div class="case" data-st="risk"><span class="chip risk">公开</span><h3>Pages · Pro / Team</h3>
+          <svg class="ve-mini" viewBox="0 0 240 90" role="img" aria-label="Pro 或 Team 从私有 repo 发布的 Pages 对互联网公开。">
+            <path class="ve-e" d="M62 45H80"/><path class="ve-e is-st" d="M158 45H176"/>
+            <g class="ve-n"><path class="sh" d="M2 23V67A30 6 0 0 0 62 67V23"/><ellipse class="sh lid" cx="32" cy="23" rx="30" ry="6"/><text class="sub" x="32" y="48">repo</text></g>
+            <g class="ve-n"><rect class="sh" x="80" y="23" width="78" height="44" rx="5"/><text x="119" y="37">Pages</text><text class="sub" x="119" y="55">Pro/Team</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="176" y="23" width="62" height="44" rx="5"/><text x="207" y="37">公开</text><text class="sub" x="207" y="55">任何人</text></g>
+          </svg></div>
+        <div class="case" data-st="warn"><span class="chip warn">要企业版</span><h3>Pages · Enterprise Cloud</h3>
+          <svg class="ve-mini" viewBox="0 0 240 90" role="img" aria-label="Enterprise Cloud 组织名下的 Pages 只对源 repo 有读权限的人可见。">
+            <path class="ve-e" d="M62 45H80"/><path class="ve-e" d="M158 45H176"/>
+            <g class="ve-n"><path class="sh" d="M2 23V67A30 6 0 0 0 62 67V23"/><ellipse class="sh lid" cx="32" cy="23" rx="30" ry="6"/><text class="sub" x="32" y="48">repo</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="80" y="23" width="78" height="44" rx="5"/><text x="119" y="37">Pages</text><text class="sub" x="119" y="55">企业版</text></g>
+            <g class="ve-n"><rect class="sh" x="176" y="23" width="62" height="44" rx="5"/><text x="207" y="37">私密</text><text class="sub" x="207" y="55">有读权限</text></g>
+          </svg></div>
+        <div class="case" data-st="ok" data-ref="clone"><span class="chip ok">推荐</span><h3>本地 docs clone</h3>
+          <svg class="ve-mini" viewBox="0 0 240 90" role="img" aria-label="git pull 到本机 docs clone，浏览器直接打开文件，只有本机可见。">
+            <path class="ve-e is-st" d="M62 45H80"/><path class="ve-e is-st" d="M158 45H176"/>
+            <g class="ve-n"><path class="sh" d="M2 23V67A30 6 0 0 0 62 67V23"/><ellipse class="sh lid" cx="32" cy="23" rx="30" ry="6"/><text class="sub" x="32" y="48">repo</text></g>
+            <g class="ve-n is-st"><rect class="sh" x="80" y="23" width="78" height="44" rx="5"/><text x="119" y="37">git pull</text><text class="sub" x="119" y="55">+ open</text></g>
+            <g class="ve-n"><rect class="sh" x="176" y="23" width="62" height="44" rx="5"/><text x="207" y="37">私密</text><text class="sub" x="207" y="55">仅本机</text></g>
+          </svg></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 7</span>本地打开要求 HTML 内联所有资源，不能像 Dan 的 guide 那样引用本地图片、靠 http.server 打开<sup><a href="#src-19">19</a></sup>。</figcaption>
+    </figure>
+  </section>
+
+  <section id="fixes">
+    <div class="kicker"><p class="eyebrow">对已知说法的更正</p><h2>上一版数错了 guide 的行数和图片数</h2></div>
+    <figure>
+      <div class="frame" style="background:var(--surface)">
+        <svg class="ve-bars" viewBox="0 0 560 196" role="img" aria-label="guide 行数：上一版 948，实际 995。本地图片：上一版 6 张，实际 10 张。">
+          <text class="t" x="0" y="12">guide/index.html 行数</text>
+          <text x="0" y="40">上一版</text><rect class="old" x="64" y="33" width="379" height="14" rx="2"/><text x="451" y="40">948</text>
+          <text x="0" y="64">实际</text><rect class="hot" x="64" y="57" width="398" height="14" rx="2"/><text x="470" y="64">995</text>
+          <text class="t" x="0" y="112">guide/images 图片数</text>
+          <text x="0" y="140">上一版</text><rect class="old" x="64" y="133" width="240" height="14" rx="2"/><text x="312" y="140">6</text>
+          <text x="0" y="164">实际</text><rect class="hot" x="64" y="157" width="400" height="14" rx="2"/><text x="472" y="164">10</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 8</span>两组各用一个从 0 起的刻度。另外“里面有动画”部分成立：CSS 里有动画编排图和 flip cards；图表没有核实到<sup><a href="#src-3">3</a></sup>。</figcaption>
+    </figure>
+    <p class="prose">“IndyDevDan 用自己的工具做网页”：没有公开这样一个工具。他公开的 planf3、htmlspec、htmlvspec 是同一路数，但面向开发计划。</p>
+  </section>
+
+  <section id="gaps">
+    <div class="kicker"><p class="eyebrow">缺口</p><h2>“没有发布”只覆盖他的公开 GitHub 仓库</h2></div>
+    <div class="gaps">
+      <div class="case" data-st="warn"><span class="chip warn">未查</span><ul><li>disler 的 gist、agenticengineer.com、indydevdan.com、视频简介</li><li>付费课程里可能有生成 prompt</li></ul></div>
+      <div class="case" data-st="warn"><span class="chip warn">未测</span><ul><li>改造后的 htmlspec 或 visual-explainer 转长报告的效果</li><li>各做法的 token 成本、生成时间、质量</li><li>内联全部 JS、CSS 后文件多大</li></ul></div>
+      <div class="case" data-st="info"><span class="chip info">未核实</span><ul><li>GitHub 网页显示 .html 源码；raw 以 text/plain 返回；htmlpreview 打不开私有 repo</li><li>Mermaid、Evidence.dev、Slidev、reveal.js、GPT-Researcher 等候选</li><li>Quarto、STORM 的许可和活跃度</li><li>Cloudflare Access、Netlify 密码、secret gist 等私密托管</li></ul></div>
+      <div class="case" data-st="risk"><span class="chip risk">已推翻</span><ul><li>visual-explainer 平常不依赖外部资源（0-3）</li><li>Co-STORM 的思维导图是唯一可视化输出（0-3）</li><li>marimo 静态导出完全不能交互（1-2）</li></ul></div>
+      <div class="case"><span class="chip na">待解</span><ul><li>guide 的 CSS 模板是否是未公开的 disler skill</li><li>agent 写 HTML 在大量报告上的稳定性：版式错乱、图表数据编造</li></ul></div>
+    </div>
+  </section>
+
+  <section class="sources" id="sources" aria-label="来源">
+    <p class="ve-label">来源 · Markdown 原文：<a href="https://github.com/ophis/PUBLIC_DOCS/blob/main/Research/TASK-138-interactive-visual-research-reports.md">Research/TASK-138-interactive-visual-research-reports.md</a></p>
+    <ol>
+      <li id="src-1"><a href="https://www.youtube.com/watch?v=WAFUMBLOjHo">SEE CMUX SOLVE Multi-Agent Orchestration（视频，2026-07-06）</a></li>
+      <li id="src-2"><a href="https://github.com/disler/learning-cmux-with-agents">disler/learning-cmux-with-agents</a></li>
+      <li id="src-3"><a href="https://github.com/disler/learning-cmux-with-agents/blob/main/guide/index.html">guide/index.html</a></li>
+      <li id="src-4"><a href="https://github.com/disler?tab=repositories">disler 的公开仓库</a></li>
+      <li id="src-5"><a href="https://github.com/disler/planf3">disler/planf3</a></li>
+      <li id="src-6"><a href="https://github.com/disler/pi-agent-observability/tree/main/.claude/skills">pi-agent-observability · htmlspec / htmlvspec</a></li>
+      <li id="src-7"><a href="https://github.com/nicobailon/visual-explainer">nicobailon/visual-explainer</a></li>
+      <li id="src-8"><a href="https://github.com/nikiforovall/claude-code-rules/blob/main/plugins/handbook-visual-explainer/README.md">handbook-visual-explainer</a></li>
+      <li id="src-9"><a href="https://github.com/ZBQtesla/html-explainer">html-explainer（ZBQtesla 分叉）</a></li>
+      <li id="src-10"><a href="https://github.com/tpgiv1995/codebase-explainer">codebase-explainer</a></li>
+      <li id="src-11"><a href="https://github.com/markmap/markmap">markmap</a></li>
+      <li id="src-12"><a href="https://markmap.js.org/docs/packages--markmap-cli">markmap-cli 文档</a></li>
+      <li id="src-13"><a href="https://quarto.org/docs/output-formats/html-basics.html">Quarto HTML 基础</a></li>
+      <li id="src-14"><a href="https://observablehq.github.io/framework/">Observable Framework</a></li>
+      <li id="src-15"><a href="https://docs.marimo.io/guides/exporting/">marimo 导出</a></li>
+      <li id="src-16"><a href="https://github.com/bytedance/deer-flow">bytedance/deer-flow</a></li>
+      <li id="src-17"><a href="https://github.com/stanford-oval/storm">stanford-oval/storm</a></li>
+      <li id="src-18"><a href="https://github.com/sgauravm/OpenDeepResearch">sgauravm/OpenDeepResearch</a></li>
+      <li id="src-19"><a href="https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site">GitHub Pages 可见性</a></li>
+    </ol>
+  </section>
+
+</main>
+</div>
+<script>
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const linked = [...document.querySelectorAll('[data-ref]')], refs = (el) => el.dataset.ref.split(' ');
+  let hovered = null, focused = null;
+  const paint = () => {
+    const keys = (hovered || focused)?.dataset.ref.split(' ') ?? [];
+    for (const t of linked) t.classList.toggle('is-lit', refs(t).some((k) => keys.includes(k)));
+    for (const svg of document.querySelectorAll('svg')) svg.classList.toggle('has-lit', !!svg.querySelector('.is-lit'));
+  };
+  for (const el of linked) {
+    el.addEventListener('pointerenter', () => { hovered = el; paint(); });
+    el.addEventListener('pointerleave', () => { hovered = null; paint(); });
+    el.addEventListener('focus', () => { focused = el; paint(); });
+    el.addEventListener('blur', () => { focused = null; paint(); });
+  }
+
+  for (const root of document.querySelectorAll('.ve-steps')) {
+    const parts = [...root.querySelectorAll('[data-s]')], caps = [...root.querySelectorAll('.ve-cap li')];
+    const range = root.querySelector('input[type=range]'), play = root.querySelector('[data-play]');
+    const n = caps.length; let i = 0, timer = null;
+    if (range) range.max = n - 1;
+    const show = (k) => {
+      i = Math.max(0, Math.min(n - 1, k));
+      for (const el of parts) { el.classList.toggle('on', +el.dataset.s <= i + 1); el.classList.toggle('now', +el.dataset.s === i + 1); }
+      caps.forEach((c, j) => c.hidden = j !== i);
+      if (range) range.value = i;
+    };
+    const stop = () => { clearInterval(timer); timer = null; if (play) play.textContent = '播放'; };
+    root.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { stop(); show(i + +b.dataset.go); } });
+    range?.addEventListener('input', () => { stop(); show(+range.value); });
+    play?.addEventListener('click', () => {
+      if (timer) return stop();
+      if (i === n - 1) show(0);
+      play.textContent = '暂停';
+      timer = setInterval(() => (i < n - 1 ? show(i + 1) : stop()), 3500);
+    });
+    show(n - 1);
+  }
+
+  // Scroll-spy for the TOC.
+  const navLinks = [...document.querySelectorAll('nav.toc a')];
+  const spy = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      for (const a of navLinks) a.classList.toggle('is-on', a.getAttribute('href') === '#' + e.target.id);
+      try { history.replaceState(null, '', '#' + e.target.id); } catch {}
+    }
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  for (const a of navLinks) { const t = document.querySelector(a.getAttribute('href')); if (t) spy.observe(t); }
+
+  if (!still) {
+    document.documentElement.classList.add('js-motion');
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        io.unobserve(e.target); e.target.classList.add('in');
+        for (const el of e.target.querySelectorAll('[data-count]')) {
+          const end = +el.dataset.count, t0 = performance.now();
+          const step = (t) => {
+            const k = Math.min(1, (t - t0) / 900);
+            el.textContent = Math.round(end * (1 - (1 - k) ** 3));
+            if (k < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      }
+    }, { rootMargin: '0px 0px -10% 0px' });
+    for (const el of document.querySelectorAll('main > *')) io.observe(el);
+  }
+</script>
+</body>
+</html>
