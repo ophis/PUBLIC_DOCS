@@ -57,7 +57,7 @@
   .sec-head { display: grid; gap: var(--s-3) var(--s-5); align-items: baseline; border-top: 1px solid var(--border); padding-top: var(--s-5); margin-bottom: var(--s-5); }
   @media (min-width: 52rem) { .sec-head { grid-template-columns: 3fr 9fr; } }
   .sec-lead { max-width: 65ch; margin: calc(-1 * var(--s-3)) 0 var(--s-5); color: var(--text-dim); }
-  @media (min-width: 52rem) { .sec-lead { margin-left: calc(25% + var(--s-1)); } }
+  @media (min-width: 52rem) { .sec-lead { margin-left: calc((100% - var(--s-5)) * .25 + var(--s-5)); } }
   h3 { font-size: var(--t-body); line-height: 1.3; font-weight: 600; }
   .eyebrow { display: flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
   .eyebrow::before { content: ''; width: 1.25rem; height: 2px; background: currentColor; }
@@ -152,6 +152,52 @@
     .ve-steps [data-s]:not(.on), .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 1; }
     .ve-steps path[pathLength][data-s] { stroke-dashoffset: 0; }
   }
+
+  /* added sections */
+  .ve-mini { width: 100%; height: auto; font: 600 14px var(--font-body); }
+  .ve-mini .ve-n .sh { filter: none; }
+  .ve-mini .ve-n .sub { font-size: 12px; }
+  .case h3 { margin-top: calc(-1 * var(--s-1)); }
+  .case .out { font-size: var(--t-small); color: var(--text-dim); }
+  .case .out b { color: var(--text); font-weight: 600; }
+  .tagchip { display: inline-flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); padding: 2px var(--s-2); border: 1px solid var(--border-bright); border-radius: var(--r-1); color: var(--text-dim); white-space: nowrap; justify-self: start; }
+  .sk { font: 500 .875em var(--font-mono); color: var(--accent); white-space: nowrap; }
+
+  /* trigger → skill map */
+  .tmap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+  .tmap > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--s-4); background: var(--surface); padding: var(--s-3) var(--s-4); align-items: baseline; }
+  @media (min-width: 44rem) { .tmap > div { grid-template-columns: minmax(0, 1.3fr) 1.5rem minmax(0, 1fr); } }
+  .tmap .arr { color: var(--text-dim); font-family: var(--font-mono); }
+  @media (max-width: 43.99rem) { .tmap .arr { display: none; } }
+  .tmap .to { font: 500 var(--t-small) var(--font-mono); color: var(--accent); }
+  .tmap .to i { font-style: normal; color: var(--text-dim); }
+
+  /* playbook map */
+  .pmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr)); gap: var(--s-4); }
+  .fam { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .fam ul { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+  .fam li b { display: block; font-weight: 600; }
+  .fam li span { display: block; font-size: var(--t-small); color: var(--text-dim); line-height: 1.45; }
+  .fam .cnt { font: 600 var(--t-label) var(--font-mono); color: var(--text-dim); }
+
+  /* playbook cards with step rail */
+  .pbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: var(--s-4); }
+  .pb { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4) var(--s-5); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .pb .trig { font-size: var(--t-small); color: var(--text-dim); }
+  .rail { list-style: none; padding: 0; counter-reset: st; display: grid; gap: var(--s-2); position: relative; }
+  .rail::before { content: ''; position: absolute; left: .6rem; top: .6rem; bottom: .6rem; width: 1px; background: var(--border-bright); }
+  .rail li { counter-increment: st; position: relative; padding-left: 2rem; font-size: var(--t-small); line-height: 1.45; }
+  .rail li::before { content: counter(st); position: absolute; left: 0; top: .05rem; width: 1.25rem; height: 1.25rem; display: grid; place-items: center; font: 600 .7rem var(--font-mono); background: var(--bg); border: 1px solid var(--border-bright); border-radius: var(--r-1); color: var(--text-dim); }
+  .gate { font-size: var(--t-small); border-top: 1px solid var(--border); padding-top: var(--s-3); }
+  .gate::before { content: 'GATE'; font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; color: var(--accent); margin-right: var(--s-2); }
+
+  /* skill catalog */
+  .cat { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: var(--s-4); }
+  .cat dl { display: grid; gap: var(--s-2); }
+  .cat dt { font: 600 var(--t-small) var(--font-mono); color: var(--text); }
+  .cat dt .src { font-weight: 500; color: var(--text-dim); margin-left: var(--s-1); }
+  .cat dd { margin: 0 0 var(--s-1); font-size: var(--t-small); color: var(--text-dim); line-height: 1.45; }
+  .legend { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); margin-top: var(--s-3); }
 </style>
 </head>
 <body>
@@ -167,9 +213,10 @@
 <nav class="toc" aria-label="Sections">
   <ul>
     <li><a href="#flow">Flow</a></li>
-    <li><a href="#bugfix">Bug fix</a></li>
-    <li><a href="#arena">Arena</a></li>
-    <li><a href="#inventory">Inventory</a></li>
+    <li><a href="#how">How it routes</a></li>
+    <li><a href="#playbooks">Playbooks</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#principles">Principles</a></li>
     <li><a href="#port">Port</a></li>
     <li><a href="#install">Install</a></li>
   </ul>
@@ -230,11 +277,91 @@
     <figcaption><span class="fig-n">Fig. 1</span>The only way out to a PR is through Verify.</figcaption>
   </figure>
 
-  <section id="bugfix">
-    <div class="sec-head"><p class="ve-label caps">Example</p><h2>A bug fix: the lead reproduces and verifies, subagents dig and fix</h2></div>
+  <section id="how">
+    <div class="sec-head"><p class="ve-label caps">How it routes</p><h2>A hook decides who handles the task; poteto-mode decides how</h2></div>
+    <p class="sec-lead">pstack is plain Markdown that the agent reads. There is no server. A hook injects one rule at session start, and poteto-mode’s <code>SKILL.md</code> carries the rest: triggers, principles, the playbook list and model defaults.</p>
     <figure>
       <div class="frame">
-        <svg class="ve-svg" viewBox="0 0 960 325" role="img" aria-label="Bug-fix playbook. Lead lane: 1 reproduce on the real surface, 4 verify on the same repro, 5 commit the repro before the fix and open a PR. Subagent lane: 2 find the cause with how and why, 3 fix, through architect when the fix crosses a function boundary. A refuted fix is reverted and the search goes back to step 2.">
+        <svg class="ve-svg" viewBox="0 0 960 300" role="img" aria-label="The SessionStart hook sorts each task three ways. Multi-file work, a design choice, a bug of unknown cause or a perf issue goes to poteto-mode, which matches a playbook. A task with specific intent enters tdd, architect, how, why, arena or interrogate directly. A small task is done directly and verified on the real artifact.">
+          <path class="ve-e is-hot" d="M180 150H230V60H540"/>
+          <text class="ve-el" x="385" y="51">≥ 2 files · design · unknown cause · perf</text>
+          <path class="ve-e" d="M180 150H540"/>
+          <text class="ve-el" x="385" y="141">intent already specific</text>
+          <path class="ve-e" d="M180 150H230V250H540"/>
+          <text class="ve-el" x="385" y="241">one file, obvious test</text>
+          <path class="ve-e" d="M720 60H790"/>
+          <text class="ve-el" x="755" y="51">matches</text>
+
+          <g class="ve-n" transform="translate(20 110)"><rect class="sh" width="160" height="80" rx="4"/><text x="80" y="30">Task</text><text class="sub" x="80" y="54">+ hook rule</text></g>
+          <g class="ve-n is-key" transform="translate(540 25)"><rect class="sh" width="180" height="70" rx="4"/><text x="90" y="26">poteto-mode</text><text class="sub" x="90" y="49">triggers · principles</text></g>
+          <g class="ve-n" transform="translate(790 25)"><rect class="sh" width="150" height="70" rx="4"/><text x="75" y="26">Playbook</text><text class="sub" x="75" y="49">1 of 23</text></g>
+          <g class="ve-n" transform="translate(540 115)"><rect class="sh" width="400" height="70" rx="4"/><text x="200" y="26">Enter one skill directly</text><text class="sub" x="200" y="49">tdd · architect · how · why · arena · interrogate</text></g>
+          <g class="ve-n" transform="translate(540 215)"><rect class="sh" width="400" height="70" rx="4"/><text x="200" y="26">Work directly</text><text class="sub" x="200" y="49">still verify on the real artifact</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 2</span>Only bigger or uncertain work pays poteto-mode’s overhead. Your own CLAUDE.md or AGENTS.md rules take precedence over the hook.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="tmap" role="list" aria-label="Situations and the skill poteto-mode must use for each">
+        <div role="listitem"><span>A non-trivial change, or “are we sure?”</span><span class="arr">→</span><span class="to">how</span></div>
+        <div role="listitem"><span>Any code at all</span><span class="arr">→</span><span class="to">name the data shape first <i>(model-the-domain)</i></span></div>
+        <div role="listitem"><span>Code that crosses a function boundary</span><span class="arr">→</span><span class="to">architect</span></div>
+        <div role="listitem"><span>A design or code bakeoff</span><span class="arr">→</span><span class="to">arena</span></div>
+        <div role="listitem"><span>Parallel coverage, races, gauntlets</span><span class="arr">→</span><span class="to">swarm</span></div>
+        <div role="listitem"><span>A contested design before it ships</span><span class="arr">→</span><span class="to">interrogate</span></div>
+        <div role="listitem"><span>A question whose answer you could observe by running something</span><span class="arr">→</span><span class="to">Prototype playbook <i>(do not ask the human)</i></span></div>
+        <div role="listitem"><span>You measured a number</span><span class="arr">→</span><span class="to">benchmark-checklist</span></div>
+        <div role="listitem"><span>Any prose, including the reply</span><span class="arr">→</span><span class="to">unslop <i>+ technical-writing for docs, PRs, commits</i></span></div>
+        <div role="listitem"><span>Before commit · before review</span><span class="arr">→</span><span class="to">deslop · no-comments</span></div>
+        <div role="listitem"><span>Long, autonomous or step-away work</span><span class="arr">→</span><span class="to">show-me-your-work <i>(decision trail)</i></span></div>
+        <div role="listitem"><span>“Check on PR X”, “get it green”</span><span class="arr">→</span><span class="to">Babysit playbook</span></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 3</span>poteto-mode’s “non-negotiables” bind situations to skills, so the agent does not decide case by case whether to review, measure or clean up.</figcaption>
+    </figure>
+  </section>
+
+  <section id="playbooks">
+    <div class="sec-head"><p class="ve-label caps">Playbooks</p><h2>23 playbooks, each a fixed recipe with a gate it will not skip</h2></div>
+    <p class="sec-lead">A playbook is a Markdown file of numbered steps. poteto-mode copies the steps word for word into the agent’s todo list. A step it skips stays in the list with <code>skip: &lt;reason&gt;</code>. Most playbooks end with Opening a PR.</p>
+    <figure>
+      <div class="pmap">
+        <div class="fam"><span class="tagchip">Read-only</span><span class="cnt">3 playbooks · no PR</span><ul>
+          <li><b>Investigation</b><span>How does X work, why is Y this way, should we do X or Y.</span></li>
+          <li><b>Runtime forensics</b><span>A live leak, spin or glitch; instrument it, cite the line.</span></li>
+          <li><b>Trace forensics</b><span>A captured profile or heap snapshot handed over after the fact.</span></li></ul></div>
+        <div class="fam"><span class="tagchip">Fix and speed</span><span class="cnt">3 playbooks · strongest model</span><ul>
+          <li><b>Bug fix</b><span>Reproduce, root-cause, fix with runtime evidence.</span></li>
+          <li><b>Perf issue</b><span>One measured slowness, fixed against a baseline.</span></li>
+          <li><b>Hillclimb</b><span>A loop that improves one metric to a target.</span></li></ul></div>
+        <div class="fam"><span class="tagchip">Build and change</span><span class="cnt">6 playbooks</span><ul>
+          <li><b>Feature</b><span>New behavior, built from a named data shape.</span></li>
+          <li><b>Refactoring</b><span>Same behavior, better structure.</span></li>
+          <li><b>Prototype</b><span>A throwaway sketch to settle a design question.</span></li>
+          <li><b>Visual parity</b><span>Pixel-exact UI match or styling migration.</span></li>
+          <li><b>Authoring a skill</b><span>Write or edit a SKILL.md.</span></li>
+          <li><b>Eval</b><span>Blind-test a prompt or skill change before promoting it.</span></li></ul></div>
+        <div class="fam"><span class="tagchip">PRs and landing</span><span class="cnt">5 playbooks</span><ul>
+          <li><b>Opening a PR</b><span>The shared last step of the other playbooks.</span></li>
+          <li><b>Babysit</b><span>Drive a PR or stack to merge-ready.</span></li>
+          <li><b>Shipping</b><span>Verify a green stack independently, then land it.</span></li>
+          <li><b>Autopilot-full</b><span>A queue of PRs, one owner each; you click merge.</span></li>
+          <li><b>Autopilot-stack</b><span>A queue built into one verified stack; you land it.</span></li></ul></div>
+        <div class="fam"><span class="tagchip">Long runs and plans</span><span class="cnt">3 playbooks</span><ul>
+          <li><b>Autonomous run</b><span>“Run until done” toward a checkable predicate.</span></li>
+          <li><b>Orchestrate</b><span>A multi-day program with a coordinator and many agents.</span></li>
+          <li><b>Multi-phase plan</b><span>The plan is the deliverable; no code.</span></li></ul></div>
+        <div class="fam"><span class="tagchip">Session care</span><span class="cnt">3 playbooks</span><ul>
+          <li><b>Session pickup</b><span>Take over another agent’s in-flight work.</span></li>
+          <li><b>Pause safely</b><span>Stop cleanly with a resume note on disk.</span></li>
+          <li><b>Worktree cleanup</b><span>Reclaim disk from old worktrees and simulators.</span></li></ul></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 4</span>All 23 playbooks by job. When none fits, or the work is large, the <code>figure-it-out</code> skill designs a custom one. A repo can add its own under <code>.agents/playbooks/</code>.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="frame">
+<svg class="ve-svg" viewBox="0 0 960 325" role="img" aria-label="Bug-fix playbook. Lead lane: 1 reproduce on the real surface, 4 verify on the same repro, 5 commit the repro before the fix and open a PR. Subagent lane: 2 find the cause with how and why, 3 fix, through architect when the fix crosses a function boundary. A refuted fix is reverted and the search goes back to step 2.">
           <rect class="bound" x="10" y="30" width="940" height="110" rx="4"/>
           <text class="tag" x="22" y="46">LEAD · OWNS THE TASK</text>
           <rect class="bound" x="10" y="180" width="940" height="110" rx="4"/>
@@ -258,13 +385,161 @@
           <g class="ve-n" transform="translate(790 55)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">⑤</text><text x="65" y="28">Commit + PR</text><text class="sub" x="65" y="50">repro first</text></g>
         </svg>
       </div>
-      <figcaption><span class="fig-n">Fig. 2</span>“Inconclusive” is not a pass: the fix ships only when the original repro passes on the same surface, and the failing test lands before the fix in git history.</figcaption>
+      <figcaption><span class="fig-n">Fig. 5</span>Bug fix, step by step. “Inconclusive” is not a pass: the fix ships only when the original repro passes on the same surface, and the failing test lands before the fix in git history.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="pbs">
+        <div class="pb"><span class="tagchip">Read-only</span><h3>Investigation</h3><p class="trig">“How does X work”, “why was Y built this way”, “are we sure about Z”.</p>
+          <ol class="rail"><li>Route through <span class="sk">how</span>; add <span class="sk">why</span> for motivation.</li><li>Checkpoint: “n/a, read-only investigation”.</li><li>Answer in <span class="sk">how</span>’s shape, or a tradeoffs table with a recommendation.</li><li>Run <span class="sk">unslop</span> on the reply.</li></ol>
+          <p class="gate">No code change, no PR. Push back if the premise is wrong.</p></div>
+        <div class="pb"><span class="tagchip">Build</span><h3>Feature</h3><p class="trig">New or changed behavior, built from a named data shape.</p>
+          <ol class="rail"><li><span class="sk">how</span> over the affected subsystem.</li><li><span class="sk">architect</span>: parallel design sketches.</li><li>Checkpoint: blockers, independent streams, shared state, smallest split.</li><li>Delegate the code (Opus) or run <span class="sk">arena</span>, in its own worktree.</li><li>Verify on the matching surface.</li><li>Rebase into small ordered commits.</li><li>Contested design → <span class="sk">interrogate</span>.</li><li>Opening a PR.</li></ol>
+          <p class="gate">The data shape is chosen before any logic. Delegation is mandatory.</p></div>
+        <div class="pb"><span class="tagchip">Build</span><h3>Refactoring</h3><p class="trig">Rename, extract, inline, dedupe, move; behavior stays the same.</p>
+          <ol class="rail"><li><span class="sk">how</span>; pin behavior with a characterization test.</li><li>Name the missing structure.</li><li>Name the target shape; <span class="sk">architect</span> if it crosses a boundary.</li><li>Subtract first: dead code, one-caller wrappers.</li><li>Small green steps; migrate callers, delete the old API.</li><li>Prove behavior unchanged.</li><li>Keep it only if reader load drops.</li><li>Commits: subtract, reshape, clean up; PR.</li></ol>
+          <p class="gate">“Type check and lint are not a pin.” No compatibility shims.</p></div>
+        <div class="pb"><span class="tagchip">Fix and speed</span><h3>Perf issue</h3><p class="trig">A measured slowness, improved against a baseline.</p>
+          <ol class="rail"><li>Baseline trace; vet it with <span class="sk">benchmark-checklist</span>.</li><li><span class="sk">how</span> grounds hypotheses; try the cheapest mantra first (Fig. 7).</li><li>Plan from the trace; <span class="sk">architect</span>; delegate (Fable); trace again.</li><li>Compare artifacts: JSON → sqlite, diff.</li><li>Cite the measurement in the PR.</li><li>Opening a PR.</li></ol>
+          <p class="gate">Every fix ties to a measurement. Never read source instead of measuring.</p></div>
+        <div class="pb"><span class="tagchip">Fix and speed</span><h3>Hillclimb</h3><p class="trig">“Sustained, scientific improvement of one metric against a target.”</p>
+          <ol class="rail"><li>Pick a repro case, a metric and a stop predicate.</li><li>Build the harness, prove it is sensitive, freeze it.</li><li>Open <code>decision.tsv</code> with <span class="sk">show-me-your-work</span>.</li><li>Ground each hypothesis in a mechanism.</li><li>Loop: delegate, measure, keep or revert, commit.</li><li>Push past the first plateau.</li><li>Stop at the predicate.</li><li>PR, commits in landing order.</li></ol>
+          <p class="gate">A predicate such as “≥ 50% better and ≥ 10 iterations”. Never claim a win from reading code.</p></div>
+        <div class="pb"><span class="tagchip">Build</span><h3>Prototype</h3><p class="trig">“Mock it up”, “try this layout”, or any fork an experiment can settle.</p>
+          <ol class="rail"><li>Scope the decision; no decision → Feature.</li><li>Gather references when the space is open.</li><li>Build a throwaway in a scratch dir.</li><li>Put the alternatives behind one switcher.</li><li>Observe: screenshot, timing, output.</li><li>Recommend; hand to Feature or <span class="sk">architect</span>.</li></ol>
+          <p class="gate">“Speed over polish.” The observation is the test.</p></div>
+        <div class="pb"><span class="tagchip">PRs</span><h3>Babysit</h3><p class="trig">“Check on PR X”, “get it green”, “address the review-bot comments”.</p>
+          <ol class="rail"><li>Declare a mode: drive, background, threads-only or check.</li><li>Work the lowest unmerged PR only; one babysitter per stack.</li><li>Order: conflicts → review threads → CI, in one push wave.</li><li>Trust the forge verdict via <code>watch-pr</code>; wake with <code>/loop</code>.</li><li>Classify a CI failure before a retry; one retry at most.</li><li>Triage bot comments: fix, dismiss with reason, or ask.</li><li>Stop at READY.</li></ol>
+          <p class="gate">“Babysitting never authorizes merging.”</p></div>
+        <div class="pb"><span class="tagchip">PRs</span><h3>Shipping</h3><p class="trig">“Land this green stack.” Needs your landing authority.</p>
+          <ol class="rail"><li>Resolve the forge; read the merge-safety rules.</li><li>One independent verifier per PR: PASS, PASS + NOTES or FAIL.</li><li>Find the contiguous verified run from the bottom.</li><li>Prepare the bottom PR only.</li><li>Merge with <code>--match-head-commit</code> on the verified SHA.</li><li>Confirm it landed, then take the next one.</li></ol>
+          <p class="gate">“Green is not safe.” The verifier must not have written the code.</p></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 6</span>Eight common playbooks. Each names its skills at the step that needs them and states one gate it will not pass without.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 960 330" role="img" aria-label="The perf mantras, tried in order: don't do it; do it, but don't do it again; do it less; do it later; do it when they're not looking; do it concurrently; do it cheaper. Stop at the first rung that meets the target.">
+          <path class="ve-e" d="M50 60V72"/><path class="ve-e" d="M90 102V114"/><path class="ve-e" d="M130 144V156"/><path class="ve-e" d="M170 186V198"/><path class="ve-e" d="M210 228V240"/><path class="ve-e" d="M250 270V282"/>
+          <g class="ve-n is-key" transform="translate(20 20)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">1  Don’t do it</text></g>
+          <g class="ve-n" transform="translate(60 62)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">2  Do it, but don’t do it again</text></g>
+          <g class="ve-n" transform="translate(100 104)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">3  Do it less</text></g>
+          <g class="ve-n" transform="translate(140 146)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">4  Do it later</text></g>
+          <g class="ve-n" transform="translate(180 188)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">5  Do it when they’re not looking</text></g>
+          <g class="ve-n" transform="translate(220 230)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">6  Do it concurrently</text></g>
+          <g class="ve-n" transform="translate(260 272)"><rect class="sh" width="400" height="40" rx="4"/><text x="16" y="20" style="text-anchor:start">7  Do it cheaper</text></g>
+          <path class="ann" d="M430 40H700"/>
+          <text class="ve-el r" x="710" y="45">cheapest win</text>
+          <path class="ann" d="M670 292H700"/>
+          <text class="ve-el r" x="710" y="297">last resort</text>
+          <text class="ve-el r" x="710" y="170">stop at the first rung</text>
+          <text class="ve-el r" x="710" y="190">that meets the target</text>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 7</span>Perf issue and Hillclimb try fixes in this order. Deleting work beats caching it; a faster algorithm comes last.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="cases">
+        <div class="case"><span class="tagchip">One task</span><h3>Autonomous run</h3>
+          <svg class="ve-mini" viewBox="0 0 240 120" role="img" aria-label="A predicate is set, then the agent iterates: change, verify, commit or discard, until the predicate holds.">
+            <path class="ve-e" d="M70 75H88"/><path class="ve-e" d="M152 75H170"/><path class="ve-e" d="M136 56V28H104V56"/>
+            <text class="ve-el" x="120" y="20" style="font-size:12px">each pass</text>
+            <g class="ve-n"><rect class="sh" x="4" y="56" width="66" height="38" rx="4"/><text x="37" y="75">goal</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="88" y="56" width="64" height="38" rx="4"/><text x="120" y="75">iterate</text></g>
+            <g class="ve-n"><rect class="sh" x="170" y="56" width="66" height="38" rx="4"/><text x="203" y="75">done</text></g>
+          </svg>
+          <p class="out">Drives one task to a checkable predicate. <b>Never relaxes the predicate</b> to declare victory.</p></div>
+        <div class="case"><span class="tagchip">One big run</span><h3>figure-it-out</h3>
+          <svg class="ve-mini" viewBox="0 0 240 120" role="img" aria-label="Frame the predicate, design a custom playbook, loop through experiments, verify the whole.">
+            <path class="ve-e" d="M104 26H136"/><path class="ve-e" d="M186 44V76"/><path class="ve-e" d="M136 95H104"/>
+            <g class="ve-n"><rect class="sh" x="4" y="8" width="100" height="36" rx="4"/><text x="54" y="26">frame</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="136" y="8" width="100" height="36" rx="4"/><text x="186" y="26">design</text></g>
+            <g class="ve-n"><rect class="sh" x="136" y="76" width="100" height="38" rx="4"/><text x="186" y="95">experiments</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="76" width="100" height="38" rx="4"/><text x="54" y="95">verify</text></g>
+          </svg>
+          <p class="out">Writes <b>a custom playbook first</b>, then runs it. Each unit ends VERIFIED, NOT VERIFIED or INCONCLUSIVE.</p></div>
+        <div class="case"><span class="tagchip">A program</span><h3>Orchestrate</h3>
+          <svg class="ve-mini" viewBox="0 0 240 120" role="img" aria-label="A coordinator that writes no code runs tracks, each with workers and verifiers.">
+            <path class="ve-e" d="M100 38V48H54V58"/><path class="ve-e" d="M140 38V48H186V58"/>
+            <path class="ve-e" d="M30 88V98"/><path class="ve-e" d="M78 88V98"/><path class="ve-e" d="M162 88V98"/><path class="ve-e" d="M210 88V98"/>
+            <g class="ve-n is-key"><rect class="sh" x="60" y="4" width="120" height="34" rx="4"/><text x="120" y="21">coordinator</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="58" width="100" height="30" rx="4"/><text x="54" y="73">track</text></g>
+            <g class="ve-n"><rect class="sh" x="136" y="58" width="100" height="30" rx="4"/><text x="186" y="73">track</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="98" width="48" height="20" rx="3"/></g><g class="ve-n"><rect class="sh" x="56" y="98" width="48" height="20" rx="3"/></g>
+            <g class="ve-n"><rect class="sh" x="136" y="98" width="48" height="20" rx="3"/></g><g class="ve-n"><rect class="sh" x="188" y="98" width="48" height="20" rx="3"/></g>
+          </svg>
+          <p class="out">Multi-day, many PRs. <b>The coordinator writes no code</b>; it keeps a ledger and spawns about 10 workers at a time.</p></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 8</span>Three scales of long work. Orchestrate falls back to Autonomous run when one agent could finish the job.</figcaption>
     </figure>
   </section>
 
-  <section id="arena">
-    <div class="sec-head"><p class="ve-label caps">Model panel</p><h2>Arena races three model families, then grafts the best parts</h2></div>
+  <section id="skills">
+    <div class="sec-head"><p class="ve-label caps">Skills</p><h2>Most heavy skills fan out to subagents, then one synthesizer decides</h2></div>
+    <p class="sec-lead">Playbooks call skills. A skill is one <code>SKILL.md</code> the agent reads and follows. The multi-agent ones share one shape: several independent views, then one merge step that you can audit.</p>
     <figure>
+      <div class="cases">
+        <div class="case"><span class="tagchip">2–4 read-only</span><h3>how</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="Two to four read-only explorers, one angle each, feed one explainer.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">explorer</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">explorer</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">explorer</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">explainer</text></g>
+          </svg>
+          <p class="out">How code works and where things live. Output: <b>Overview, Key concepts, How it works, Where things live, Gotchas</b>.</p></div>
+        <div class="case"><span class="tagchip">7 evidence types</span><h3>why</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="One investigator per evidence source, such as git history, the issue tracker and chat, feeds one synthesizer.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">git, PRs</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">issues</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">chat, docs…</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">synthesis</text></g>
+          </svg>
+          <p class="out">Why code is this way, from git, tickets, docs, chat, logs and analytics. Output: <b>a cited answer with confidence levels</b>.</p></div>
+        <div class="case"><span class="tagchip">3 model families</span><h3>interrogate</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="Opus, Fable and Sonnet review the same diff with the same rubric; the lead sorts their findings.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">Opus</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">Fable</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">Sonnet</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">lead</text></g>
+          </svg>
+          <p class="out">Adversarial diff review. Output: <b>Act on, Consider, Noted, Dismissed</b>, plus a map of where models agree. Never auto-applies.</p></div>
+        <div class="case"><span class="tagchip">N workers</span><h3>swarm</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="N workers each report PASS, ISSUES or BLOCKED; one consolidated report.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">slice 1</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">slice 2</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">slice N</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">report</text></g>
+          </svg>
+          <p class="out">Parallel coverage, races, gauntlets. Each worker says <b>PASS, ISSUES or BLOCKED</b>. “A gap does not count as a pass.”</p></div>
+        <div class="case"><span class="tagchip">3 model families</span><h3>arena</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="Opus, Fable and Sonnet each build the artifact; the lead picks a base and grafts the best parts.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">Opus</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">Fable</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">Sonnet</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">base+graft</text></g>
+          </svg>
+          <p class="out">Competing builds of one artifact. Output: <b>one merged result</b>, scored by a judge from another family (Fig. 10).</p></div>
+        <div class="case"><span class="tagchip">3 lenses</span><h3>reflect</h3>
+          <svg class="ve-mini" viewBox="0 0 240 132" role="img" aria-label="Judgment, tooling and divergent reviewers read the session transcript; a synthesizer sorts their proposals.">
+            <path class="ve-e" d="M100 23H122V60H144"/><path class="ve-e" d="M100 66H144"/><path class="ve-e" d="M100 109H122V72H144"/>
+            <g class="ve-n"><rect class="sh" x="4" y="6" width="96" height="34" rx="4"/><text x="52" y="23">judgment</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="49" width="96" height="34" rx="4"/><text x="52" y="66">tooling</text></g>
+            <g class="ve-n"><rect class="sh" x="4" y="92" width="96" height="34" rx="4"/><text x="52" y="109">divergent</text></g>
+            <g class="ve-n is-key"><rect class="sh" x="144" y="46" width="92" height="40" rx="4"/><text x="190" y="66">synthesis</text></g>
+          </svg>
+          <p class="out">Turns this session’s lessons into skill edits. Output: <b>Accepted, Rejected, Backlog</b>. Waits for your approval.</p></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 9</span>Six multi-agent skills, one shape. <code>architect</code> reuses <code>arena</code> to race type sketches before any code.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
       <div class="frame">
         <svg class="ve-svg" viewBox="0 0 1000 300" role="img" aria-label="Arena. The lead frames one prompt and a hidden rubric, then spawns Opus, Fable and Sonnet runners in separate worktrees. A cross-judge from another model family scores the candidates. The lead picks a base, grafts the best parts of the losers, and verifies.">
           <path class="ve-e" d="M150 150H180V60H210"/>
@@ -294,25 +569,121 @@
           <g class="ve-n" transform="translate(860 120)"><rect class="sh" width="120" height="60" rx="4"/><text x="60" y="22">Verify</text><text class="sub" x="60" y="44">result</text></g>
         </svg>
       </div>
-      <figcaption><span class="fig-n">Fig. 3</span>Diversity comes from model families, not personas. <code>architect</code> and <code>interrogate</code> run the same three-model panel.</figcaption>
+      <figcaption><span class="fig-n">Fig. 10</span>Diversity comes from model families, not personas. <code>architect</code> and <code>interrogate</code> run the same three-model panel.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 960 150" role="img" aria-label="Opening a PR: the diff goes through deslop, then no-comments with the comment-sicko agent, then technical-writing and unslop for the title and body, then the PR opens ready, never as a draft.">
+          <path class="ve-e" d="M160 75H210"/><text class="ve-el" x="185" y="66">diff</text>
+          <path class="ve-e" d="M370 75H420"/><text class="ve-el" x="395" y="66">clean</text>
+          <path class="ve-e" d="M580 75H630"/><text class="ve-el" x="605" y="66">lean</text>
+          <path class="ve-e is-hot" d="M790 75H830"/>
+          <g class="ve-n" transform="translate(20 40)"><rect class="sh" width="140" height="70" rx="4"/><text x="70" y="26">Branch</text><text class="sub" x="70" y="49">verified</text></g>
+          <g class="ve-n" transform="translate(210 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">deslop</text><text class="sub" x="80" y="49">AI slop out</text></g>
+          <g class="ve-n" transform="translate(420 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">no-comments</text><text class="sub" x="80" y="49">comment-sicko</text></g>
+          <g class="ve-n" transform="translate(630 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">technical-writing</text><text class="sub" x="80" y="49">+ unslop</text></g>
+          <g class="ve-n is-key" transform="translate(830 40)"><rect class="sh" width="120" height="70" rx="4"/><text x="60" y="26">PR</text><text class="sub" x="60" y="49">ready</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 11</span>Every PR passes the same cleanup. <code>comment-sicko</code> deletes comments except a short keep list and marks code that needs a comment to make sense <code>MUST KILL</code>.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="cat">
+        <div class="fam"><span class="tagchip">Understand code</span><dl>
+          <dt>how</dt><dd>Explains a subsystem: flow, ownership, where code should live.</dd>
+          <dt>why</dt><dd>Finds the reason behind a design from history and team records.</dd>
+          <dt>teach</dt><dd>Explains so a person understands; smallest complete answer.</dd>
+          <dt>blast-radius</dt><dd>Finds what a change breaks beyond the diff, and proves the one fact it is safe because of.</dd>
+          <dt>recall</dt><dd>Rebuilds “where did I leave off” from recent transcripts.</dd>
+          <dt>bro</dt><dd>Restates the last message without jargon.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Design and run work</span><dl>
+          <dt>architect</dt><dd>Races type and module sketches before code, then tracks deviations.</dd>
+          <dt>arena · swarm</dt><dd>Competing builds · parallel workers (Fig. 9).</dd>
+          <dt>figure-it-out</dt><dd>Designs a custom playbook when none fits.</dd>
+          <dt>show-me-your-work</dt><dd>Append-only TSV decision log, reviewed by another model.</dd>
+          <dt>tdd</dt><dd>Failing test first, then the smallest fix.</dd>
+          <dt>benchmark-checklist</dt><dd>Seven questions before you trust a perf number.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Review and verify</span><dl>
+          <dt>interrogate</dt><dd>Three-model adversarial review of a diff.</dd>
+          <dt>thermo-nuclear-code-quality-review <span class="src">◆</span></dt><dd>A harsh maintainability audit; hunts moves that delete complexity.</dd>
+          <dt>deslop <span class="src">◆</span> · no-comments</dt><dd>Strip AI slop · strip and act on comments.</dd>
+          <dt>create- / maintain-verification-skill</dt><dd>Generate and audit a repo’s own <code>verify</code> skill that drives the real app.</dd>
+          <dt>correct</dt><dd>Turns a mistake made twice into a lint, type or test.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Prose and standards</span><dl>
+          <dt>unslop</dt><dd>Removes AI writing tells; applies to every reply.</dd>
+          <dt>technical-writing</dt><dd>Docs, RFCs, PR text: Diátaxis, Google style, simplified English.</dd>
+          <dt>typescript-best-practices</dt><dd>Type rules for any .ts or .tsx file.</dd></dl></div>
+        <div class="fam"><span class="tagchip">PRs and CI</span><dl>
+          <dt>babysit <span class="src">▲</span></dt><dd>Shepherds one PR to merge-ready outside poteto-mode.</dd>
+          <dt>fix-ci <span class="src">◆</span> · fix-merge-conflicts <span class="src">◆</span></dt><dd>Fix the first failing check · resolve conflicts without pushing.</dd>
+          <dt>get-pr-comments <span class="src">◆</span></dt><dd>Group review comments into an action list.</dd>
+          <dt>make-pr-easy-to-review <span class="src">◆</span></dt><dd>Regroup commits; tree must stay identical.</dd>
+          <dt>what-did-i-get-done <span class="src">◆</span></dt><dd>Summarize your commits for a period.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Memory and setup</span><dl>
+          <dt>reflect</dt><dd>Session lessons → proposed skill edits, after approval.</dd>
+          <dt>automate-me</dt><dd>Mines your transcripts into a personal <code>-mode</code> skill.</dd>
+          <dt>setup-pstack</dt><dd>Writes <code>pstack-models.md</code>: model and effort per role, hook on or off.</dd></dl></div>
+      </div>
+      <p class="legend">◆ from Cursor’s cursor-team-kit · ▲ written for this port · unmarked: upstream pstack</p>
+      <figcaption><span class="fig-n">Fig. 12</span>All 32 public skills besides poteto-mode, by job. Each is also a <code>/pstack:&lt;name&gt;</code> slash command.</figcaption>
+    </figure>
+  </section>
+
+  <section id="principles">
+    <div class="sec-head"><p class="ve-label caps">Principles</p><h2>24 principles; the reply must name the ones that changed a decision</h2></div>
+    <figure>
+      <div class="cat">
+        <div class="fam"><span class="tagchip">Core · 10</span><dl>
+          <dt>laziness-protocol</dt><dd>Bias to deletion and the smallest change.</dd>
+          <dt>foundational-thinking</dt><dd>Types and data structures before logic.</dd>
+          <dt>redesign-from-first-principles</dt><dd>Fold a new need in as if it was always there.</dd>
+          <dt>attack-the-premise</dt><dd>Fixes keep failing → test the shared assumption.</dd>
+          <dt>subtract-before-you-add</dt><dd>Remove dead weight, then build.</dd>
+          <dt>minimize-reader-load</dt><dd>Fewer layers, less hidden state.</dd>
+          <dt>outcome-oriented-execution</dt><dd>No throwaway compatibility states.</dd>
+          <dt>experience-first</dt><dd>User delight over implementer convenience.</dd>
+          <dt>exhaust-the-design-space</dt><dd>2–3 prototypes before a novel decision.</dd>
+          <dt>build-the-lever</dt><dd>Build the script that does or proves it.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Architecture · 6</span><dl>
+          <dt>model-the-domain</dt><dd>A state machine or table, not scattered ifs.</dd>
+          <dt>boundary-discipline</dt><dd>Validate at the edge; trust inside.</dd>
+          <dt>type-system-discipline</dt><dd>Make illegal states unrepresentable.</dd>
+          <dt>make-operations-idempotent</dt><dd>Same end state after crash and retry.</dd>
+          <dt>migrate-callers-then-delete-legacy-apis</dt><dd>One wave, no lingering old API.</dd>
+          <dt>separate-before-serializing-shared-state</dt><dd>Remove sharing before adding locks.</dd></dl></div>
+        <div class="fam"><span class="tagchip">Verification · 5</span><dl>
+          <dt>prove-it-works</dt><dd>The real artifact, not “it compiles”.</dd>
+          <dt>fix-root-causes</dt><dd>Reproduce first; no silencing guards.</dd>
+          <dt>sequence-verifiable-units</dt><dd>Small units, each checked before the next.</dd>
+          <dt>test-behavior-not-implementation</dt><dd>The test must catch a real defect.</dd>
+          <dt>explain-the-number</dt><dd>Know what limits a measurement.</dd></dl>
+          <span class="tagchip" style="margin-top: var(--s-3)">Delegation · 2</span><dl>
+          <dt>guard-the-context-window</dt><dd>Bulk goes to subagents; keep summaries.</dd>
+          <dt>never-block-on-the-human</dt><dd>Reversible work: act, then report.</dd></dl>
+          <span class="tagchip" style="margin-top: var(--s-3)">Meta · 1</span><dl>
+          <dt>encode-lessons-in-structure</dt><dd>A rule said twice becomes a lint or script.</dd></dl></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 13</span>Each principle is its own <code>principle-*</code> skill. poteto-mode lets the agent cite one only after reading it in full that session.</figcaption>
     </figure>
   </section>
 
   <section id="inventory">
-    <div class="sec-head"><p class="ve-label caps">Inventory</p><h2>24 of the 57 skills are principles the router cites</h2></div>
+    <div class="sec-head"><p class="ve-label caps">Inventory</p><h2>57 skills, 23 playbooks, 17 model roles</h2></div>
     <figure>
       <div class="kpis">
         <div class="kpi"><span class="ve-label">Skills</span><span class="val" data-count="57">57</span>
           <svg class="ve-cells" viewBox="0 0 240 30" role="img" aria-label="57 skills: 24 principle skills, 33 workflow skills"><rect width="190" height="10" fill="url(#ve-w-on)"/><rect y="10" width="50" height="10" fill="url(#ve-w-on)"/><rect x="50" y="10" width="140" height="10" fill="url(#ve-w-off)"/><rect y="20" width="190" height="10" fill="url(#ve-w-off)"/><path class="ann" d="M194 5H200"/><text x="203" y="5">24</text><text x="203" y="25">33</text></svg>
           <span class="ve-label">filled = principle · outline = workflow</span></div>
         <div class="kpi"><span class="ve-label">Playbooks</span><span class="val" data-count="23">23</span>
-          <svg class="ve-bars" viewBox="0 0 240 104" role="img" aria-label="23 playbooks: 6 debug, 6 build, 5 PR and ship, 6 long runs"><text y="12">debug</text><rect x="72" y="5" width="120" height="14" rx="2"/><text x="200" y="12">6</text><text y="38">build</text><rect x="72" y="31" width="120" height="14" rx="2"/><text x="200" y="38">6</text><text y="64">PR, ship</text><rect x="72" y="57" width="100" height="14" rx="2"/><text x="180" y="64">5</text><text y="90">long run</text><rect x="72" y="83" width="120" height="14" rx="2"/><text x="200" y="90">6</text></svg></div>
+          <svg class="ve-bars" viewBox="0 0 240 156" role="img" aria-label="23 playbooks: 3 read-only, 3 fix and speed, 6 build, 5 PRs, 3 long runs, 3 session care"><text y="12">read-only</text><rect x="88" y="5" width="60" height="14" rx="2"/><text x="156" y="12">3</text><text y="38">fix, speed</text><rect x="88" y="31" width="60" height="14" rx="2"/><text x="156" y="38">3</text><text y="64">build</text><rect class="hot" x="88" y="57" width="120" height="14" rx="2"/><text x="216" y="64">6</text><text y="90">PRs</text><rect x="88" y="83" width="100" height="14" rx="2"/><text x="196" y="90">5</text><text y="116">long runs</text><rect x="88" y="109" width="60" height="14" rx="2"/><text x="156" y="116">3</text><text y="142">session</text><rect x="88" y="135" width="60" height="14" rx="2"/><text x="156" y="142">3</text></svg></div>
         <div class="kpi"><span class="ve-label">Model roles</span><span class="val" data-count="17">17</span>
           <svg class="ve-bars" viewBox="0 0 240 78" role="img" aria-label="17 roles: 9 on the default model Opus, 4 on the strongest model Fable, 4 on the three-model panel"><text y="12">opus</text><rect class="hot" x="56" y="5" width="144" height="14" rx="2"/><text x="208" y="12">9</text><text y="38">fable</text><rect x="56" y="31" width="64" height="14" rx="2"/><text x="128" y="38">4</text><text y="64">panel</text><rect x="56" y="57" width="64" height="14" rx="2"/><text x="128" y="64">4</text></svg></div>
         <div class="kpi"><span class="ve-label">Declared forks from upstream</span><span class="val" data-count="46">46</span>
           <svg class="ve-bars" viewBox="0 0 240 52" role="img" aria-label="46 forks: 40 policy, 6 port features"><text y="12">policy</text><rect x="88" y="5" width="120" height="14" rx="2"/><text x="216" y="12">40</text><text y="40">port</text><rect x="88" y="33" width="18" height="14" rx="2"/><text x="114" y="40">6</text></svg></div>
       </div>
-      <figcaption><span class="fig-n">Fig. 4</span>Bug fixes, perf work and hillclimbs default to the strongest model, Fable; <code>setup-pstack</code> can override any role, with an effort level such as <code>opus @xhigh</code>.</figcaption>
+      <figcaption><span class="fig-n">Fig. 14</span>Bug fixes, perf work and hillclimbs default to the strongest model, Fable. <code>setup-pstack</code> can override any role, with an effort level such as <code>opus @xhigh</code>.</figcaption>
     </figure>
   </section>
 
@@ -346,7 +717,7 @@
           <g class="ve-n" transform="translate(690 260)"><rect class="sh" width="260" height="60" rx="4"/><text x="130" y="21">opencode · Gemini · Prime</text><text class="sub" x="130" y="43">~/.agents/skills</text></g>
         </svg>
       </div>
-      <figcaption><span class="fig-n">Fig. 5</span>Skills keep upstream’s Claude Code wording; Codex and Pi map tool names through <code>codex-tools.md</code> and <code>pi-tools.md</code> instead of forking every skill.</figcaption>
+      <figcaption><span class="fig-n">Fig. 15</span>Skills keep upstream’s Claude Code wording; Codex and Pi map tool names through <code>codex-tools.md</code> and <code>pi-tools.md</code> instead of forking every skill.</figcaption>
     </figure>
   </section>
 
@@ -360,16 +731,17 @@
 codex plugin add pstack@pstack-claude</pre><p>Trust the routing hook in <code>/hooks</code>.</p></div>
         <div class="case"><h3>Pi</h3><pre>pi install git:github.com/michael-denyer/pstack-claude</pre><p>The extension adds subagent, question and wake-up tools.</p></div>
       </div>
-      <figcaption><span class="fig-n">Fig. 6</span>No server or telemetry: what the skills read goes only to your model provider.</figcaption>
+      <figcaption><span class="fig-n">Fig. 16</span>No server or telemetry: what the skills read goes only to your model provider.</figcaption>
     </figure>
   </section>
 
   <section class="sources" aria-label="Sources">
     <p class="ve-label caps">Sources</p>
-    <p>github.com/michael-denyer/pstack-claude at <code>dc8e617</code>: <code>README.md</code> · <code>CONTEXT.md</code> · <code>plugins/pstack/skills/poteto-mode/SKILL.md</code> · <code>…/playbooks/bug-fix.md</code> · <code>plugins/pstack/skills/arena/SKILL.md</code> · <code>plugins/pstack/models.json</code> · <code>plugins/pstack/hooks/session-start-context.md</code> · <code>tools/forks.json</code> · <code>tools/upstream.json</code>. Playbook groups in Fig. 4 are this page’s grouping.</p>
+    <p>github.com/michael-denyer/pstack-claude at <code>dc8e617</code>: <code>README.md</code> · <code>CONTEXT.md</code> · <code>docs/reference.md</code> · <code>NOTICE-skills.md</code> · <code>plugins/pstack/skills/poteto-mode/SKILL.md</code> and its 23 <code>playbooks/*.md</code> · every <code>plugins/pstack/skills/*/SKILL.md</code> · <code>plugins/pstack/agents/*.md</code> · <code>plugins/pstack/models.json</code> · <code>plugins/pstack/hooks/session-start-context.md</code> · <code>tools/forks.json</code> · <code>tools/upstream.json</code>. The playbook and skill groupings are this page’s, not the repo’s.</p>
   </section>
 
 </main>
+
 <script>
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
