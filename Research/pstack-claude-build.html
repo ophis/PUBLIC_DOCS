@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pstack build path</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='4' fill='%230d1520'/%3E%3Cpath d='M14 18h10M14 32h10M14 46h10M30 18l20 14-20 14' fill='none' stroke='%23ffb547' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* tokens: Blueprint register */
+  :root {
+    color-scheme: dark light;
+    --bg: #0d1520; --surface: #132031; --border: #22324a; --border-bright: #596b87;
+    --text: #e3ecf5; --text-dim: #92a6bb; --accent: #ffb547; --accent-dim: rgba(255,181,71,.14);
+    --ok: #6fd3a0; --warn: #e8d36a; --risk: #ff7b6b; --info: #7cc0f0;
+    --node-top: color-mix(in srgb, var(--text) 7%, var(--surface)); --lift: rgb(0 0 0 / .45); --halo: 32%;
+    --font-body: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --t-label: .75rem; --t-small: .875rem; --t-body: 1rem; --t-lead: 1.25rem; --t-h2: 1.625rem; --t-h1: clamp(2.25rem, 5.5vw, 4rem);
+    --s-1: .25rem; --s-2: .5rem; --s-3: .75rem; --s-4: 1rem; --s-5: 1.5rem; --s-6: 2rem; --s-7: 3rem; --s-8: 4.5rem;
+    --r-1: 4px; --r-2: 4px;
+    --ease: cubic-bezier(.16,1,.3,1); --fast: 150ms; --med: 300ms; --slow: 500ms;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f2f6fa; --surface: #ffffff; --border: #d6e0ea; --border-bright: #818f9e;
+      --text: #0f1a26; --text-dim: #4d6074; --accent: #a34700; --accent-dim: rgba(163,71,0,.12);
+      --ok: #1c7443; --warn: #776300; --risk: #b0341e; --info: #145f99;
+      --node-top: var(--surface); --lift: rgb(15 26 38 / .12); --halo: 22%;
+    }
+  }
+
+  html { font-size: 17px; scroll-padding-top: 4rem; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 400 var(--t-body)/1.6 var(--font-body); text-wrap: pretty; font-kerning: normal; font-synthesis: none; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-dim); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  a { color: var(--info); }
+
+  /* sticky section nav: only the link list scrolls sideways */
+  .toc { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: 1px solid var(--border); }
+  .toc ul { max-width: 64rem; margin: 0 auto; padding: var(--s-2) var(--s-5); list-style: none; display: flex; gap: var(--s-5); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .toc ul::-webkit-scrollbar { display: none; }
+  .toc a { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); text-decoration: none; white-space: nowrap; padding: var(--s-1) 0; border-bottom: 2px solid transparent; }
+  .toc a.on { color: var(--text); border-bottom-color: var(--accent); }
+
+  main { max-width: 64rem; margin: 0 auto; padding: var(--s-7) var(--s-5) var(--s-8); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+  section, figure, header { min-width: 0; }
+  header { display: grid; gap: var(--s-4); }
+  header + figure { margin-top: calc(var(--s-6) - var(--s-8)); }
+  h1, h2, .kpi .val { text-box: trim-both cap alphabetic; }
+  h1 { font-size: var(--t-h1); line-height: 1.05; font-weight: 600; letter-spacing: -.035em; text-wrap: balance; max-width: 24ch; margin-bottom: var(--s-2); }
+  h1 em { font-style: normal; color: var(--accent); }
+  h2 { font-size: var(--t-h2); line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
+  .sec-head { display: grid; gap: var(--s-3) var(--s-5); align-items: baseline; border-top: 1px solid var(--border); padding-top: var(--s-5); margin-bottom: var(--s-5); }
+  @media (min-width: 52rem) { .sec-head { grid-template-columns: 3fr 9fr; } }
+  .sec-lead { max-width: 65ch; margin: calc(-1 * var(--s-3)) 0 var(--s-5); color: var(--text-dim); }
+  @media (min-width: 52rem) { .sec-lead { margin-left: calc(25% + var(--s-1)); } }
+  h3 { font-size: var(--t-body); line-height: 1.3; font-weight: 600; }
+  .eyebrow { display: flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .eyebrow::before { content: ''; width: 1.25rem; height: 2px; background: currentColor; }
+  .ve-label { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); }
+  .caps { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--text); }
+  .lead { font-size: var(--t-lead); line-height: 1.5; color: var(--text-dim); max-width: 50ch; }
+  .lead b { color: var(--text); font-weight: 600; }
+  .meta { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  code { font: .875em var(--font-mono); font-variant-ligatures: none; overflow-wrap: anywhere; }
+
+  /* Blueprint stage: 24px line grid at low contrast */
+  .frame { background: linear-gradient(color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, var(--bg); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-5); overflow-x: auto; }
+  figcaption { font-size: var(--t-body); color: var(--text-dim); margin-top: var(--s-3); max-width: 65ch; }
+  .fig-n { font: 600 var(--t-label) var(--font-mono); color: var(--text); margin-right: var(--s-2); }
+
+  /* diagram kit */
+  .ve-svg { width: 100%; min-width: 700px; height: auto; display: block; font: 500 17px var(--font-body); }
+  .ve-n .sh { fill: url(#ve-node); stroke: var(--border-bright); stroke-width: 1.5; filter: drop-shadow(0 6px 14px var(--lift)); transition: stroke var(--fast) var(--ease), opacity var(--med) var(--ease); }
+  .ve-n .lid { fill: var(--node-top); }
+  .ve-n.is-key .sh { fill: color-mix(in srgb, var(--accent) 11%, var(--surface)); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) var(--halo), transparent)); }
+  .ve-n text { fill: var(--text); text-anchor: middle; dominant-baseline: central; font-weight: 600; }
+  .ve-n .sub { fill: var(--text-dim); font: 500 14px var(--font-mono); }
+  .ve-n .co { fill: var(--text-dim); font: 500 14px var(--font-mono); text-anchor: start; }
+  .ve-n .gl { fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .ve-n.is-key .gl { stroke: var(--accent); }
+  .ve-e { fill: none; stroke: var(--text-dim); stroke-width: 1.75; marker-end: url(#ve-ah); }
+  .ve-e.is-hot { stroke: var(--accent); stroke-width: 2.75; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent)); }
+  .ve-e.is-async { stroke-dasharray: 6 5; }
+  .ve-el { fill: var(--text-dim); font: 500 14px var(--font-mono); text-anchor: middle; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+  .ve-el.l { text-anchor: end; } .ve-el.r { text-anchor: start; }
+  .bound { fill: none; stroke: var(--border-bright); stroke-width: 1; stroke-dasharray: 4 4; }
+  .tag { fill: var(--text-dim); font: 600 12px var(--font-mono); letter-spacing: .08em; }
+
+  .ve-ref { text-decoration: underline dotted var(--text-dim) 1px; text-underline-offset: .22em; border-radius: var(--r-1); transition: background var(--fast) var(--ease); }
+  .ve-ref.is-lit { background: var(--accent-dim); text-decoration-color: var(--accent); }
+  svg [data-ref] { transition: opacity var(--med) var(--ease); }
+  svg.has-lit path[data-ref]:not(.is-lit), svg.has-lit g[data-ref]:not(.is-lit) .sh { opacity: .25; }
+  svg.has-lit g[data-ref]:not(.is-lit) text, svg.has-lit text[data-ref]:not(.is-lit) { fill: var(--text-dim); }
+  .ve-n.is-lit .sh { stroke: var(--accent); }
+  .ve-e.is-lit { stroke: var(--accent); }
+  .ve-el.is-lit { fill: var(--text); }
+
+  /* stepper */
+  .ve-steps [data-s] { transition: opacity var(--slow) var(--ease), stroke-dashoffset var(--slow) var(--ease); }
+  .ve-steps [data-s]:not(.on) { opacity: .15; }
+  .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 0; }
+  .ve-steps path[pathLength][data-s] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ve-steps path[pathLength][data-s].on { stroke-dashoffset: 0; }
+  .ve-steps .ve-n.now .sh { stroke: var(--accent); }
+  .ve-player { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2) var(--s-3); margin-top: var(--s-4); }
+  .ve-cap { grid-column: 1 / -1; list-style: none; padding: 0; min-height: 3.2em; max-width: 65ch; }
+  .ve-cap li::before { content: attr(data-n); font: 600 var(--t-label) var(--font-mono); color: var(--accent); margin-right: var(--s-3); font-variant-numeric: tabular-nums; }
+  .ve-player input { accent-color: var(--accent); min-width: 0; }
+  button { font: 500 var(--t-small) var(--font-mono); color: var(--text); background: var(--surface); border: 1px solid var(--border-bright); border-radius: var(--r-1); padding: var(--s-2) var(--s-3); cursor: pointer; transition: border-color var(--fast) var(--ease); }
+  button:hover, button:focus-visible { border-color: var(--accent); }
+
+  /* KPI strip */
+  .kpis { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+  .kpi { flex: 1 1 14rem; background: var(--surface); padding: var(--s-5); display: grid; grid-template-rows: auto auto 1fr; gap: var(--s-3); min-width: 0; }
+  .kpi .val { font: 600 2.75rem/1 var(--font-body); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+  .ve-cells { align-self: end; width: 100%; max-width: 15rem; height: auto; font: 500 13px var(--font-mono); overflow: visible; }
+  .ve-cells text { fill: var(--text-dim); dominant-baseline: central; }
+  .ann { fill: none; stroke: var(--text-dim); stroke-width: 1; }
+  .ve-bars { align-self: end; width: 100%; max-width: 16rem; height: auto; font: 500 13px var(--font-mono); overflow: visible; }
+  .ve-bars text { fill: var(--text-dim); dominant-baseline: central; }
+  .ve-bars rect { fill: var(--border-bright); transform-box: fill-box; transform-origin: left; transition: transform 900ms var(--ease) 150ms; }
+  .ve-bars .hot { fill: var(--accent); }
+  .ve-bars .hot + text { fill: var(--text); }
+
+  /* install cards */
+  .cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr)); gap: var(--s-4); }
+  .case { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .case pre { font: 400 var(--t-small)/1.5 var(--font-mono); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-1); padding: var(--s-3); overflow-x: auto; white-space: pre; }
+  .case p { color: var(--text-dim); font-size: var(--t-small); }
+
+  .sources { border-top: 1px solid var(--border); padding-top: var(--s-4); display: grid; gap: var(--s-2); }
+  .sources p { max-width: 75ch; }
+
+  .js-motion main > * { transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease); }
+  .js-motion main > :not(.in) { opacity: 0; transform: translateY(1rem); }
+  .js-motion main > :not(.in) .ve-bars rect { transform: scaleX(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --border: #d6e0ea; --border-bright: #818f9e; --text: #0f1a26; --text-dim: #4d6074; --accent: #a34700; --ok: #1c7443; --warn: #776300; --risk: #b0341e; --info: #145f99; --node-top: #fff; }
+    .toc, .ve-player button, .ve-player input { display: none; }
+    .frame { overflow: visible; background: #fff; } .ve-svg { min-width: 0; }
+    .frame, .case, .kpi { break-inside: avoid; } h2 { break-after: avoid; }
+    svg * { filter: none !important; }
+    .js-motion main > * { opacity: 1 !important; transform: none !important; }
+    .js-motion .ve-bars rect { transform: none !important; }
+    .ve-steps [data-s]:not(.on), .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 1; }
+    .ve-steps path[pathLength][data-s] { stroke-dashoffset: 0; }
+  }
+
+  /* added sections */
+  .ve-mini { width: 100%; height: auto; font: 600 14px var(--font-body); }
+  .ve-mini .ve-n .sh { filter: none; }
+  .ve-mini .ve-n .sub { font-size: 12px; }
+  .case h3 { margin-top: calc(-1 * var(--s-1)); }
+  .case .out { font-size: var(--t-small); color: var(--text-dim); }
+  .case .out b { color: var(--text); font-weight: 600; }
+  .tagchip { display: inline-flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); padding: 2px var(--s-2); border: 1px solid var(--border-bright); border-radius: var(--r-1); color: var(--text-dim); white-space: nowrap; justify-self: start; }
+  .sk { font: 500 .875em var(--font-mono); color: var(--accent); white-space: nowrap; }
+
+  /* trigger → skill map */
+  .tmap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+  .tmap > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--s-4); background: var(--surface); padding: var(--s-3) var(--s-4); align-items: baseline; }
+  @media (min-width: 44rem) { .tmap > div { grid-template-columns: minmax(0, 1.3fr) 1.5rem minmax(0, 1fr); } }
+  .tmap .arr { color: var(--text-dim); font-family: var(--font-mono); }
+  @media (max-width: 43.99rem) { .tmap .arr { display: none; } }
+  .tmap .to { font: 500 var(--t-small) var(--font-mono); color: var(--accent); }
+  .tmap .to i { font-style: normal; color: var(--text-dim); }
+
+  /* playbook map */
+  .pmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr)); gap: var(--s-4); }
+  .fam { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .fam ul { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+  .fam li b { display: block; font-weight: 600; }
+  .fam li span { display: block; font-size: var(--t-small); color: var(--text-dim); line-height: 1.45; }
+  .fam .cnt { font: 600 var(--t-label) var(--font-mono); color: var(--text-dim); }
+
+  /* playbook cards with step rail */
+  .pbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: var(--s-4); }
+  .pb { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4) var(--s-5); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .pb .trig { font-size: var(--t-small); color: var(--text-dim); }
+  .rail { list-style: none; padding: 0; counter-reset: st; display: grid; gap: var(--s-2); position: relative; }
+  .rail::before { content: ''; position: absolute; left: .6rem; top: .6rem; bottom: .6rem; width: 1px; background: var(--border-bright); }
+  .rail li { counter-increment: st; position: relative; padding-left: 2rem; font-size: var(--t-small); line-height: 1.45; }
+  .rail li::before { content: counter(st); position: absolute; left: 0; top: .05rem; width: 1.25rem; height: 1.25rem; display: grid; place-items: center; font: 600 .7rem var(--font-mono); background: var(--bg); border: 1px solid var(--border-bright); border-radius: var(--r-1); color: var(--text-dim); }
+  .gate { font-size: var(--t-small); border-top: 1px solid var(--border); padding-top: var(--s-3); }
+  .gate::before { content: 'GATE'; font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; color: var(--accent); margin-right: var(--s-2); }
+
+  /* skill catalog */
+  .cat { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: var(--s-4); }
+  .cat dl { display: grid; gap: var(--s-2); }
+  .cat dt { font: 600 var(--t-small) var(--font-mono); color: var(--text); }
+  .cat dt .src { font-weight: 500; color: var(--text-dim); margin-left: var(--s-1); }
+  .cat dd { margin: 0 0 var(--s-1); font-size: var(--t-small); color: var(--text-dim); line-height: 1.45; }
+  .legend { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); margin-top: var(--s-3); }
+
+  .chip { display: inline-flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); padding: 2px var(--s-2); border: 1px solid currentColor; border-radius: var(--r-1); white-space: nowrap; justify-self: start; }
+  .chip::before { content: ''; width: .5rem; height: .5rem; background: currentColor; }
+  .chip.same { color: var(--ok); } .chip.same::before { border-radius: 50%; }
+  .chip.diff { color: var(--warn); } .chip.diff::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+  /* comparison table */
+  .cmp { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+  .cmp > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--s-4); background: var(--surface); padding: var(--s-3) var(--s-4); align-items: baseline; font-size: var(--t-small); line-height: 1.45; }
+  .cmp > div > span:nth-child(2) { color: var(--text-dim); }
+  .cmp .st { font: 600 var(--t-label) var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+  .cmp-h { font: 600 var(--t-label) var(--font-mono); color: var(--text-dim); }
+  .cmp-h span:nth-child(3) { color: var(--accent); }
+  @media (min-width: 52rem) { .cmp > div { grid-template-columns: 8rem minmax(0, 1fr) minmax(0, 1fr) 6.5rem; } }
+  @media (max-width: 51.99rem) { .cmp-h { display: none !important; } .cmp > div > span:nth-child(2)::before { content: 'autopilot: '; font-family: var(--font-mono); font-size: var(--t-label); } .cmp > div > span:nth-child(3)::before { content: 'pstack: '; font-family: var(--font-mono); font-size: var(--t-label); color: var(--accent); } }
+
+  /* PR body mock */
+  .prmock { background: var(--surface); border: 1px solid var(--border-bright); border-radius: var(--r-2); padding: var(--s-5); display: grid; gap: var(--s-4); max-width: 44rem; }
+  .prmock .prt code { font-size: var(--t-body); color: var(--text); font-weight: 600; }
+  .prmock dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-1) var(--s-4); }
+  @media (min-width: 40rem) { .prmock dl { grid-template-columns: 10rem minmax(0, 1fr); } }
+  .prmock dt { font: 600 var(--t-small) var(--font-mono); color: var(--accent); }
+  .prmock dd { margin: 0 0 var(--s-2); font-size: var(--t-small); color: var(--text-dim); }
+  .ve-cap b { font-weight: 600; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ve-ah" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
+    <linearGradient id="ve-node" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--node-top)"/><stop offset="1" style="stop-color:var(--surface)"/></linearGradient>
+    <pattern id="ve-w-on" width="10" height="10" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="8" height="8" rx="1" style="fill:var(--accent)"/></pattern>
+    <pattern id="ve-w-off" width="10" height="10" patternUnits="userSpaceOnUse"><rect x="1.5" y="1.5" width="7" height="7" rx="1" style="fill:none;stroke:var(--text-dim)"/></pattern>
+  </defs>
+</svg>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#loop">Build loop</a></li>
+    <li><a href="#map">Where build lives</a></li>
+    <li><a href="#design">Design</a></li>
+    <li><a href="#delegate">Delegate</a></li>
+    <li><a href="#pr">PR</a></li>
+    <li><a href="#autopilot">Autopilot</a></li>
+    <li><a href="#compare">vs autopilot:build</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <header id="loop">
+    <p class="eyebrow">pstack-claude · build path</p>
+    <h1>pstack builds through one recipe: design, delegate, <em>verify</em>, then PR.</h1>
+    <p class="lead">The <b>Feature playbook</b> is the build loop. Bigger work wraps it: <code>figure-it-out</code> designs a custom recipe, and the Autopilots and Orchestrate give each PR its own owner.</p>
+    <p class="meta">plugins/pstack/skills/poteto-mode/playbooks/feature.md · read at dc8e617, 5 Oct 2026</p>
+  </header>
+
+  <figure class="ve-steps">
+    <div class="frame">
+      <svg class="ve-svg" viewBox="0 0 980 340" role="img" aria-label="Feature playbook. 1 how grounds the subsystem. 2 architect races type sketches across three models. 3 a throughput checkpoint answers four questions. 4 a subagent writes the code in its own worktree. 5 the lead verifies on the real surface; a failure goes back to step 4. 6 the lead rebases into small ordered commits. 7 interrogate reviews a contested design. 8 Opening a PR.">
+        <path class="ve-e" data-s="2" pathLength="1" d="M210 80H270"/>
+        <text class="ve-el" data-s="2" x="240" y="71">model</text>
+        <path class="ve-e" data-s="3" pathLength="1" d="M460 80H520"/>
+        <text class="ve-el" data-s="3" x="490" y="71">sketch</text>
+        <path class="ve-e" data-s="4" pathLength="1" d="M710 80H770"/>
+        <text class="ve-el" data-s="4" x="740" y="71">brief</text>
+        <path class="ve-e" data-s="5" pathLength="1" d="M840 120V220"/>
+        <text class="ve-el l" data-s="5" x="830" y="175">diff</text>
+        <path class="ve-e is-async" data-s="5" d="M900 220V120"/>
+        <text class="ve-el r" data-s="5" x="910" y="175">fails</text>
+        <path class="ve-e is-hot" data-s="6" pathLength="1" d="M770 260H710"/>
+        <text class="ve-el" data-s="6" x="740" y="251">passes</text>
+        <path class="ve-e" data-s="7" pathLength="1" d="M520 260H460"/>
+        <text class="ve-el" data-s="7" x="490" y="251">stack</text>
+        <path class="ve-e" data-s="8" pathLength="1" d="M270 260H210"/>
+        <text class="ve-el" data-s="8" x="240" y="251">clean</text>
+
+        <g class="ve-n" data-s="1" transform="translate(20 40)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">①</text><text x="95" y="30">how</text><text class="sub" x="95" y="54">2–4 explorers</text></g>
+        <g class="ve-n" data-s="2" transform="translate(270 40)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">②</text><text x="95" y="30">architect</text><text class="sub" x="95" y="54">arena · 3 models</text></g>
+        <g class="ve-n" data-s="3" transform="translate(520 40)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">③</text><text x="95" y="30">Checkpoint</text><text class="sub" x="95" y="54">4 questions</text></g>
+        <g class="ve-n" data-s="4" transform="translate(770 40)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">④</text><text x="95" y="30">Delegate</text><text class="sub" x="95" y="54">subagent · worktree</text></g>
+        <g class="ve-n is-key" data-s="5" transform="translate(770 220)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">⑤</text><text x="95" y="30">Verify</text><text class="sub" x="95" y="54">real surface</text></g>
+        <g class="ve-n" data-s="6" transform="translate(520 220)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">⑥</text><text x="95" y="30">Commits</text><text class="sub" x="95" y="54">small, ordered</text></g>
+        <g class="ve-n" data-s="7" transform="translate(270 220)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">⑦</text><text x="95" y="30">interrogate</text><text class="sub" x="95" y="54">if contested</text></g>
+        <g class="ve-n" data-s="8" transform="translate(20 220)"><rect class="sh" width="190" height="80" rx="4"/><text class="co" x="8" y="14">⑧</text><text x="95" y="30">Opening a PR</text><text class="sub" x="95" y="54">cleanup · ready</text></g>
+      </svg>
+    </div>
+    <div class="ve-player">
+      <ol class="ve-cap">
+        <li data-n="1/8"><b>how</b> sends 2–4 read-only explorers over the subsystem the change touches.</li>
+        <li data-n="2/8"><b>architect</b> races type and module sketches on Opus, Fable and Sonnet, then merges one design.</li>
+        <li data-n="3/8">The lead writes a <b>throughput checkpoint</b>: what blocks, what runs in parallel, what state is shared, the smallest safe split.</li>
+        <li data-n="4/8">A subagent writes the code in its own worktree, from a brief with paths, data shape and success criteria. Several valid shapes → <b>arena</b> instead. This step cannot be skipped.</li>
+        <li data-n="5/8">The lead <b>verifies on the surface the change touches</b>, through the <code>run</code> or project <code>verify</code> skill. “Inconclusive” is not a pass.</li>
+        <li data-n="6/8">The lead rebases into small ordered commits; each one could be its own PR.</li>
+        <li data-n="7/8">A contested design gets <b>interrogate</b>: three model families review the diff. Nothing is auto-applied.</li>
+        <li data-n="8/8"><b>Opening a PR</b>: deslop, no-comments, technical-writing, then a ready PR. No merge.</li>
+      </ol>
+      <button data-go="-1" aria-label="Previous step">←</button>
+      <button data-play>Play</button>
+      <input type="range" min="0" value="0" aria-label="Step">
+      <button data-go="1" aria-label="Next step">→</button>
+    </div>
+    <figcaption><span class="fig-n">Fig. 1</span>The lead designs and verifies; subagents explore, sketch, write and review. Code reaches a PR only through step 5.</figcaption>
+  </figure>
+
+  <section id="map">
+    <div class="sec-head"><p class="ve-label caps">Where build lives</p><h2>Four recipes write code; bigger playbooks run them per PR</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 980 475" role="img" aria-label="Three tiers. Programs: Autopilot-full, Autopilot-stack and Orchestrate run owners or workers that each run a recipe; Multi-phase plan writes a plan only. One big run: figure-it-out designs its own recipe. One change: Feature, Refactoring, Bug fix, and Perf issue or Hillclimb. Every recipe ends in Opening a PR.">
+          <rect class="bound" x="10" y="10" width="960" height="110" rx="4"/><text class="tag" x="22" y="28">PROGRAM · A QUEUE OF PRS</text>
+          <rect class="bound" x="10" y="150" width="960" height="100" rx="4"/><text class="tag" x="22" y="168">ONE BIG RUN</text>
+          <rect class="bound" x="10" y="280" width="960" height="100" rx="4"/><text class="tag" x="22" y="298">ONE CHANGE · BUILD RECIPES</text>
+
+          <path class="ve-e" d="M130 100V278"/><path class="ve-e" d="M360 100V278"/><path class="ve-e" d="M590 100V278"/>
+          <text class="ve-el r" x="140" y="205">owners run a recipe</text>
+          <path class="ve-e is-async" d="M845 235V278"/>
+          <path class="ve-e" d="M130 365V410"/><path class="ve-e" d="M360 365V410"/><path class="ve-e" d="M590 365V410"/><path class="ve-e" d="M845 365V410"/>
+          <text class="ve-el r" x="140" y="393">ends in</text>
+
+          <g class="ve-n" transform="translate(30 40)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Autopilot-full</text><text class="sub" x="100" y="43">you click merge</text></g>
+          <g class="ve-n" transform="translate(260 40)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Autopilot-stack</text><text class="sub" x="100" y="43">you land the stack</text></g>
+          <g class="ve-n" transform="translate(490 40)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Orchestrate</text><text class="sub" x="100" y="43">multi-day program</text></g>
+          <g class="ve-n" transform="translate(740 40)"><rect class="sh" width="210" height="60" rx="4" style="stroke-dasharray:5 4"/><text x="105" y="21">Multi-phase plan</text><text class="sub" x="105" y="43">writes a plan, no code</text></g>
+          <g class="ve-n" transform="translate(740 175)"><rect class="sh" width="210" height="60" rx="4"/><text x="105" y="21">figure-it-out</text><text class="sub" x="105" y="43">designs its own recipe</text></g>
+          <g class="ve-n is-key" transform="translate(30 305)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Feature</text><text class="sub" x="100" y="43">new behavior</text></g>
+          <g class="ve-n" transform="translate(260 305)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Refactoring</text><text class="sub" x="100" y="43">same behavior</text></g>
+          <g class="ve-n" transform="translate(490 305)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">Bug fix</text><text class="sub" x="100" y="43">repro first</text></g>
+          <g class="ve-n" transform="translate(740 305)"><rect class="sh" width="210" height="60" rx="4"/><text x="105" y="21">Perf · Hillclimb</text><text class="sub" x="105" y="43">measured first</text></g>
+          <g class="ve-n" transform="translate(30 410)"><rect class="sh" width="920" height="50" rx="4"/><text x="460" y="25">Opening a PR · deslop → no-comments → technical-writing + unslop → ready PR</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 2</span>Read-only playbooks (Investigation, forensics) and Prototype, which is throwaway, never reach this map. Visual parity also builds, one UI component at a time.</figcaption>
+    </figure>
+  </section>
+
+  <section id="design">
+    <div class="sec-head"><p class="ve-label caps">Design</p><h2>architect replaces a written spec with raced type sketches</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 980 300" role="img" aria-label="architect phases. Ground with how and why. Sketch with arena: at least two structurally distinct designs from three models, screened for red flags, the deeper interface preferred. Agree is an opt-in pause. Implement fills the stub bodies; an accepted deviation updates the sketch. A pattern of friction goes to Scrap, which re-runs how and returns to Sketch with a smaller design.">
+          <path class="ve-e" d="M180 100H230"/><text class="ve-el" x="205" y="91">model</text>
+          <path class="ve-e" d="M400 100H450"/><text class="ve-el" x="425" y="91">pick</text>
+          <path class="ve-e" d="M580 100H640"/><text class="ve-el" x="610" y="91">go</text>
+          <path class="ve-e" d="M700 60V30H760V60"/><text class="ve-el" x="730" y="22">deviation → update the sketch</text>
+          <path class="ve-e is-async" d="M720 140V220"/><text class="ve-el r" x="730" y="185">repeated friction</text>
+          <path class="ve-e is-async" d="M640 250H315V140"/><text class="ve-el" x="480" y="241">redesign, smaller</text>
+
+          <g class="ve-n" transform="translate(20 60)"><rect class="sh" width="160" height="80" rx="4"/><text x="80" y="30">Ground</text><text class="sub" x="80" y="54">how · why</text></g>
+          <g class="ve-n is-key" transform="translate(230 60)"><rect class="sh" width="170" height="80" rx="4"/><text x="85" y="30">Sketch</text><text class="sub" x="85" y="54">arena · ≥ 2 shapes</text></g>
+          <g class="ve-n" transform="translate(450 60)"><rect class="sh" width="130" height="80" rx="4" style="stroke-dasharray:5 4"/><text x="65" y="30">Agree</text><text class="sub" x="65" y="54">opt-in pause</text></g>
+          <g class="ve-n" transform="translate(640 60)"><rect class="sh" width="160" height="80" rx="4"/><text x="80" y="30">Implement</text><text class="sub" x="80" y="54">fill the stubs</text></g>
+          <g class="ve-n" transform="translate(640 220)"><rect class="sh" width="160" height="60" rx="4"/><text x="80" y="21">Scrap</text><text class="sub" x="80" y="43">re-run how</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 3</span>The design artifact is code-shaped: types and signatures with <code>not implemented</code> bodies, plus a rationale. Candidates are screened against design red flags, and the deeper interface wins. There is no human checkpoint unless you ask for one.</figcaption>
+    </figure>
+  </section>
+
+  <section id="delegate">
+    <div class="sec-head"><p class="ve-label caps">Delegate</p><h2>The lead never writes the code; each writer gets its own worktree</h2></div>
+    <figure>
+      <div class="cases">
+        <div class="case"><span class="tagchip">Checkpoint 1</span><h3>Blocking first steps</h3><p class="out">Gates run before any fan-out.</p></div>
+        <div class="case"><span class="tagchip">Checkpoint 2</span><h3>Independent workstreams</h3><p class="out">Disjoint files, services or layers run in parallel. <b>Shared writes serialize.</b></p></div>
+        <div class="case"><span class="tagchip">Checkpoint 3</span><h3>Shared mutable state</h3><p class="out">Split the target first. Serialize only for a real invariant.</p></div>
+        <div class="case"><span class="tagchip">Checkpoint 4</span><h3>Smallest safe split</h3><p class="out">If one worker is best, say why. A non-applicable item stays as <code>n/a: &lt;reason&gt;</code>.</p></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 4</span>The throughput checkpoint: four todo items written before any code is delegated.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 980 260" role="img" aria-label="The lead writes a brief with file paths, the data shape and success criteria. With one clear shape, one subagent writes the code in its own worktree. With several valid shapes, arena runs three runners in three worktrees. Either way the diff returns to the lead, who reviews and verifies.">
+          <path class="ve-e" d="M170 130H220"/><text class="ve-el" x="195" y="121">writes</text>
+          <path class="ve-e" d="M420 115H470V60H560"/><text class="ve-el" x="515" y="51">one shape</text>
+          <path class="ve-e" d="M420 145H470V200H560"/><text class="ve-el" x="515" y="191">several</text>
+          <path class="ve-e" d="M760 60H785V115H810"/><path class="ve-e" d="M760 200H785V145H810"/>
+          <text class="ve-el" x="772" y="51">diff</text>
+
+          <g class="ve-n" transform="translate(20 100)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="21">Lead</text><text class="sub" x="75" y="43">owns the design</text></g>
+          <g class="ve-n" transform="translate(220 70)"><rect class="sh" width="200" height="120" rx="4"/><text x="100" y="24">Brief</text><text class="sub" x="100" y="52">file paths</text><text class="sub" x="100" y="74">data shape</text><text class="sub" x="100" y="96">success criteria</text></g>
+          <g class="ve-n" transform="translate(560 30)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">One subagent</text><text class="sub" x="100" y="43">own worktree · Opus</text></g>
+          <g class="ve-n" transform="translate(560 170)"><rect class="sh" width="200" height="60" rx="4"/><text x="100" y="21">arena</text><text class="sub" x="100" y="43">3 runners · 3 worktrees</text></g>
+          <g class="ve-n is-key" transform="translate(810 100)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="21">Lead reviews</text><text class="sub" x="75" y="43">then verifies</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 5</span>Delegation is mandatory, even for a small diff: the point is that someone else reviews the code. A line in the brief that says “don’t touch file X” is not a lock; a separate worktree is.</figcaption>
+    </figure>
+  </section>
+
+  <section id="pr">
+    <div class="sec-head"><p class="ve-label caps">PR</p><h2>Every recipe ends with the same cleanup and a ready PR</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 960 150" role="img" aria-label="Opening a PR: the verified branch goes through deslop, then no-comments with the comment-sicko agent, then technical-writing and unslop for the title and body, then the PR opens ready, never as a draft.">
+          <path class="ve-e" d="M160 75H210"/><text class="ve-el" x="185" y="66">diff</text>
+          <path class="ve-e" d="M370 75H420"/><text class="ve-el" x="395" y="66">clean</text>
+          <path class="ve-e" d="M580 75H630"/><text class="ve-el" x="605" y="66">lean</text>
+          <path class="ve-e is-hot" d="M790 75H830"/>
+          <g class="ve-n" transform="translate(20 40)"><rect class="sh" width="140" height="70" rx="4"/><text x="70" y="26">Branch</text><text class="sub" x="70" y="49">verified</text></g>
+          <g class="ve-n" transform="translate(210 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">deslop</text><text class="sub" x="80" y="49">AI slop out</text></g>
+          <g class="ve-n" transform="translate(420 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">no-comments</text><text class="sub" x="80" y="49">comment-sicko</text></g>
+          <g class="ve-n" transform="translate(630 40)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">technical-writing</text><text class="sub" x="80" y="49">+ unslop</text></g>
+          <g class="ve-n is-key" transform="translate(830 40)"><rect class="sh" width="120" height="70" rx="4"/><text x="60" y="26">PR</text><text class="sub" x="60" y="49">ready</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 6</span>A subagent that opens a PR also runs <code>interrogate</code> first. Opening a PR does not start a babysit; that is a separate playbook you ask for.</figcaption>
+    </figure>
+
+    <figure style="margin-top: var(--s-7)">
+      <div class="prmock">
+        <p class="prt"><code>feat(search): keep filter across page changes</code></p>
+        <dl>
+          <dt>## Why</dt><dd>Problem and approach in 1–3 short sentences.</dd>
+          <dt>## What changed</dt><dd>1–3 bullets; name a symbol only when it carries the change.</dd>
+          <dt>## Scope</dt><dd>What it covers and what it leaves out. Always present.</dd>
+          <dt>## Tradeoffs</dt><dd>Only alternatives a reviewer would ask about.</dd>
+          <dt>## Blast Radius</dt><dd>Who or what it touches, and why that is safe.</dd>
+          <dt>## Verification</dt><dd>1–3 real run paths and outcomes; perf as <code>before → after</code>.</dd>
+        </dl>
+      </div>
+      <figcaption><span class="fig-n">Fig. 7</span>The PR body is a one-minute briefing: Conventional Commits title, these sections in order, squash body under about 40 lines. Prefer five narrow PRs to one large PR.</figcaption>
+    </figure>
+  </section>
+
+  <section id="autopilot">
+    <div class="sec-head"><p class="ve-label caps">Autopilot</p><h2>Autopilot-full: one owner per PR, a swarm verdict per round, your click to merge</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 980 390" role="img" aria-label="Owner lane: build in its own worktree, open a ready PR within about 15 minutes with a decision trail, self-proof and bot triage, deslop, no-comments and rebase, report the code-ready head SHA. Root lane: swarm-verify that SHA with lanes that rerun gates, prove behavior live, audit the diff twice and run a trunk regression. Findings go back to the owner as one fix-forward with red tests; a new head gets a new round. An hourly loop audit replaces stuck owners. A clean verdict makes the PR merge-ready, and the operator clicks merge.">
+          <rect class="bound" x="10" y="10" width="960" height="120" rx="4"/><text class="tag" x="22" y="28">OWNER · ONE SUBAGENT PER PR</text>
+          <rect class="bound" x="10" y="150" width="960" height="125" rx="4"/><text class="tag" x="22" y="168">ROOT · THE LEAD SESSION</text>
+          <rect class="bound" x="10" y="295" width="960" height="85" rx="4"/><text class="tag" x="22" y="313">OPERATOR · YOU</text>
+
+          <path class="ve-e" d="M170 80H210"/><path class="ve-e" d="M360 80H400"/><path class="ve-e" d="M550 80H590"/><path class="ve-e" d="M750 80H790"/>
+          <path class="ve-e" d="M875 110V180"/><text class="ve-el r" x="885" y="150">SHA</text>
+          <path class="ve-e is-async" d="M590 250H475V110"/><text class="ve-el l" x="465" y="185">fix-forward,</text><text class="ve-el l" x="465" y="203">red tests</text>
+          <path class="ve-e is-hot" d="M775 260V325"/><text class="ve-el r" x="785" y="295">clean verdict</text>
+
+          <g class="ve-n" transform="translate(20 50)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="21">Build</text><text class="sub" x="75" y="43">own worktree</text></g>
+          <g class="ve-n" transform="translate(210 50)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="21">Ready PR</text><text class="sub" x="75" y="43">≤ 15 min + trail</text></g>
+          <g class="ve-n" transform="translate(400 50)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="21">Self-proof</text><text class="sub" x="75" y="43">+ bot triage</text></g>
+          <g class="ve-n" transform="translate(590 50)"><rect class="sh" width="160" height="60" rx="4"/><text x="80" y="21">Clean, rebase</text><text class="sub" x="80" y="43">deslop · no-comm.</text></g>
+          <g class="ve-n" transform="translate(790 50)"><rect class="sh" width="170" height="60" rx="4"/><text x="85" y="21">Code-ready</text><text class="sub" x="85" y="43">reports head SHA</text></g>
+          <g class="ve-n" transform="translate(20 185)"><rect class="sh" width="280" height="60" rx="4" style="stroke-dasharray:5 4"/><text x="140" y="21">Hourly /loop audit</text><text class="sub" x="140" y="43">replaces stuck owners</text></g>
+          <g class="ve-n is-key" transform="translate(590 180)"><rect class="sh" width="370" height="80" rx="4"/><text x="185" y="24">swarm-verify at head SHA</text><text class="sub" x="185" y="48">gates · live proof · ≥ 2 diff audits</text><text class="sub" x="185" y="66">· regression vs trunk</text></g>
+          <g class="ve-n" transform="translate(590 325)"><rect class="sh" width="370" height="45" rx="4"/><text x="185" y="22">Merge-ready → you click merge</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 8</span>“The live lane is the floor”: a verdict without proof on the real surface is not clean. Autopilot-stack runs the same owners, but a clean verdict appends the PR to one linear stack that you land.</figcaption>
+    </figure>
+  </section>
+
+  <section id="compare">
+    <div class="sec-head"><p class="ve-label caps">vs /autopilot:build</p><h2>Same arc, different checks: autopilot reviews documents, pstack races designs and drives the app</h2></div>
+    <figure>
+      <div class="cmp" role="table" aria-label="Stage-by-stage comparison of /autopilot:build and pstack's Feature playbook">
+        <div class="cmp-h" role="row"><span role="columnheader">Stage</span><span role="columnheader">/autopilot:build</span><span role="columnheader">pstack · Feature</span></div>
+        <div role="row"><span class="st">Isolate</span><span>S1 one worktree + plan doc with a RESUME block</span><span>Worktree off main; <b>each writing delegate gets its own</b></span><span class="chip same">same</span></div>
+        <div role="row"><span class="st">Understand</span><span>Inside brainstorming</span><span><b>how</b>: 2–4 explorers, one explainer</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Design</span><span>S2 <code>superpowers:brainstorming</code> → prose spec</span><span><b>architect</b>: ≥ 2 type sketches raced on 3 models</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Design review</span><span>S3 reviewer panel loops on the spec until it passes</span><span>None by default; opt-in pause or <code>interrogate</code> on the sketch</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Plan</span><span>S4 task list: files, signatures, tests first</span><span>Throughput checkpoint: 4 items</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Build</span><span>S5 subagent-driven development, review per task</span><span>One subagent, or <b>arena</b> when several shapes fit</span><span class="chip same">same idea</span></div>
+        <div role="row"><span class="st">Verify</span><span>S6 run the repo’s checks; never weaken one</span><span><b>Drive the real surface</b> via <code>run</code> or <code>verify</code></span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Review</span><span>S7 role panel (correctness, docs, tests…) loops to pass or cap</span><span><code>interrogate</code> only if contested; diversity from model families</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">History</span><span>S8 squash to one commit</span><span>Small ordered commits; a stack of narrow PRs</span><span class="chip diff">differs</span></div>
+        <div role="row"><span class="st">Deliver</span><span>S9 review-ready branch + <code>autopilot-result</code> JSON; no merge</span><span>A ready PR with a briefing body; no merge</span><span class="chip same">same</span></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 9</span>Both run without asking you and both stop before merge. autopilot:build gates on reviewed documents (spec, task list) and a review loop with a cap. pstack gates on a raced design and on proof in the running product, and scales up through the Autopilot playbooks.</figcaption>
+    </figure>
+  </section>
+
+  <section class="sources" aria-label="Sources">
+    <p class="ve-label caps">Sources</p>
+    <p>github.com/michael-denyer/pstack-claude at <code>dc8e617</code>: <code>plugins/pstack/skills/poteto-mode/playbooks/feature.md</code>, <code>opening-a-pr.md</code>, <code>autopilot-full.md</code>, <code>autopilot-stack.md</code> · <code>plugins/pstack/skills/architect/SKILL.md</code> · <code>plugins/pstack/skills/figure-it-out/SKILL.md</code>. <code>/autopilot:build</code>: <code>~/.claude/plugins/cache/claude-autopilot/autopilot/0.12.3/skills/build/SKILL.md</code>.</p>
+  </section>
+
+</main>
+
+<script>
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const linked = [...document.querySelectorAll('[data-ref]')], refs = (el) => el.dataset.ref.split(' ');
+  let hovered = null, focused = null;
+  const paint = () => {
+    const keys = (hovered || focused)?.dataset.ref.split(' ') ?? [];
+    for (const t of linked) t.classList.toggle('is-lit', refs(t).some((k) => keys.includes(k)));
+    for (const svg of document.querySelectorAll('svg')) svg.classList.toggle('has-lit', !!svg.querySelector('.is-lit'));
+  };
+  for (const el of linked) {
+    el.addEventListener('pointerenter', () => { hovered = el; paint(); });
+    el.addEventListener('pointerleave', () => { hovered = null; paint(); });
+    el.addEventListener('focus', () => { focused = el; paint(); });
+    el.addEventListener('blur', () => { focused = null; paint(); });
+  }
+
+  for (const root of document.querySelectorAll('.ve-steps')) {
+    const parts = [...root.querySelectorAll('[data-s]')], caps = [...root.querySelectorAll('.ve-cap li')];
+    const range = root.querySelector('input[type=range]'), play = root.querySelector('[data-play]');
+    const n = caps.length; let i = 0, timer = null;
+    if (range) range.max = n - 1;
+    const show = (k) => {
+      i = Math.max(0, Math.min(n - 1, k));
+      for (const el of parts) { el.classList.toggle('on', +el.dataset.s <= i + 1); el.classList.toggle('now', +el.dataset.s === i + 1); }
+      caps.forEach((c, j) => c.hidden = j !== i);
+      if (range) range.value = i;
+    };
+    const stop = () => { clearInterval(timer); timer = null; if (play) play.textContent = 'Play'; };
+    root.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { stop(); show(i + +b.dataset.go); } });
+    range?.addEventListener('input', () => { stop(); show(+range.value); });
+    play?.addEventListener('click', () => {
+      if (timer) return stop();
+      if (i === n - 1) show(0);
+      play.textContent = 'Pause';
+      timer = setInterval(() => (i < n - 1 ? show(i + 1) : stop()), 3500);
+    });
+    show(n - 1);
+  }
+
+  const navLinks = [...document.querySelectorAll('.toc a')];
+  const spy = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      for (const a of navLinks) a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id);
+      try { history.replaceState(null, '', '#' + e.target.id); } catch {}
+    }
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  for (const a of navLinks) { const t = document.querySelector(a.getAttribute('href')); if (t) spy.observe(t); }
+
+  if (!still) {
+    document.documentElement.classList.add('js-motion');
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        io.unobserve(e.target); e.target.classList.add('in');
+        for (const el of e.target.querySelectorAll('[data-count]')) {
+          const end = +el.dataset.count, t0 = performance.now();
+          const step = (t) => {
+            const k = Math.min(1, (t - t0) / 900);
+            el.textContent = Math.round(end * (1 - (1 - k) ** 3));
+            if (k < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      }
+    }, { rootMargin: '0px 0px -10% 0px' });
+    for (const el of document.querySelectorAll('main > *')) io.observe(el);
+  }
+</script>
+</body>
+</html>
