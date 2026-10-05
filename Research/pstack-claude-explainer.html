@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pstack: one router turns a goal into verified work</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='4' fill='%230d1520'/%3E%3Cpath d='M14 18h10M14 32h10M14 46h10M30 18l20 14-20 14' fill='none' stroke='%23ffb547' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* tokens: Blueprint register */
+  :root {
+    color-scheme: dark light;
+    --bg: #0d1520; --surface: #132031; --border: #22324a; --border-bright: #596b87;
+    --text: #e3ecf5; --text-dim: #92a6bb; --accent: #ffb547; --accent-dim: rgba(255,181,71,.14);
+    --ok: #6fd3a0; --warn: #e8d36a; --risk: #ff7b6b; --info: #7cc0f0;
+    --node-top: color-mix(in srgb, var(--text) 7%, var(--surface)); --lift: rgb(0 0 0 / .45); --halo: 32%;
+    --font-body: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --t-label: .75rem; --t-small: .875rem; --t-body: 1rem; --t-lead: 1.25rem; --t-h2: 1.625rem; --t-h1: clamp(2.25rem, 5.5vw, 4rem);
+    --s-1: .25rem; --s-2: .5rem; --s-3: .75rem; --s-4: 1rem; --s-5: 1.5rem; --s-6: 2rem; --s-7: 3rem; --s-8: 4.5rem;
+    --r-1: 4px; --r-2: 4px;
+    --ease: cubic-bezier(.16,1,.3,1); --fast: 150ms; --med: 300ms; --slow: 500ms;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f2f6fa; --surface: #ffffff; --border: #d6e0ea; --border-bright: #818f9e;
+      --text: #0f1a26; --text-dim: #4d6074; --accent: #a34700; --accent-dim: rgba(163,71,0,.12);
+      --ok: #1c7443; --warn: #776300; --risk: #b0341e; --info: #145f99;
+      --node-top: var(--surface); --lift: rgb(15 26 38 / .12); --halo: 22%;
+    }
+  }
+
+  html { font-size: 17px; scroll-padding-top: 4rem; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 400 var(--t-body)/1.6 var(--font-body); text-wrap: pretty; font-kerning: normal; font-synthesis: none; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent-dim); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  a { color: var(--info); }
+
+  /* sticky section nav: only the link list scrolls sideways */
+  .toc { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: 1px solid var(--border); }
+  .toc ul { max-width: 64rem; margin: 0 auto; padding: var(--s-2) var(--s-5); list-style: none; display: flex; gap: var(--s-5); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .toc ul::-webkit-scrollbar { display: none; }
+  .toc a { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); text-decoration: none; white-space: nowrap; padding: var(--s-1) 0; border-bottom: 2px solid transparent; }
+  .toc a.on { color: var(--text); border-bottom-color: var(--accent); }
+
+  main { max-width: 64rem; margin: 0 auto; padding: var(--s-7) var(--s-5) var(--s-8); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+  section, figure, header { min-width: 0; }
+  header { display: grid; gap: var(--s-4); }
+  header + figure { margin-top: calc(var(--s-6) - var(--s-8)); }
+  h1, h2, .kpi .val { text-box: trim-both cap alphabetic; }
+  h1 { font-size: var(--t-h1); line-height: 1.05; font-weight: 600; letter-spacing: -.035em; text-wrap: balance; max-width: 24ch; margin-bottom: var(--s-2); }
+  h1 em { font-style: normal; color: var(--accent); }
+  h2 { font-size: var(--t-h2); line-height: 1.2; font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
+  .sec-head { display: grid; gap: var(--s-3) var(--s-5); align-items: baseline; border-top: 1px solid var(--border); padding-top: var(--s-5); margin-bottom: var(--s-5); }
+  @media (min-width: 52rem) { .sec-head { grid-template-columns: 3fr 9fr; } }
+  .sec-lead { max-width: 65ch; margin: calc(-1 * var(--s-3)) 0 var(--s-5); color: var(--text-dim); }
+  @media (min-width: 52rem) { .sec-lead { margin-left: calc(25% + var(--s-1)); } }
+  h3 { font-size: var(--t-body); line-height: 1.3; font-weight: 600; }
+  .eyebrow { display: flex; align-items: center; gap: var(--s-2); font: 600 var(--t-label) var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .eyebrow::before { content: ''; width: 1.25rem; height: 2px; background: currentColor; }
+  .ve-label { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); }
+  .caps { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--text); }
+  .lead { font-size: var(--t-lead); line-height: 1.5; color: var(--text-dim); max-width: 50ch; }
+  .lead b { color: var(--text); font-weight: 600; }
+  .meta { font: 500 var(--t-label) var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  code { font: .875em var(--font-mono); font-variant-ligatures: none; overflow-wrap: anywhere; }
+
+  /* Blueprint stage: 24px line grid at low contrast */
+  .frame { background: linear-gradient(color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, color-mix(in srgb, var(--border) 55%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, var(--bg); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-5); overflow-x: auto; }
+  figcaption { font-size: var(--t-body); color: var(--text-dim); margin-top: var(--s-3); max-width: 65ch; }
+  .fig-n { font: 600 var(--t-label) var(--font-mono); color: var(--text); margin-right: var(--s-2); }
+
+  /* diagram kit */
+  .ve-svg { width: 100%; min-width: 700px; height: auto; display: block; font: 500 17px var(--font-body); }
+  .ve-n .sh { fill: url(#ve-node); stroke: var(--border-bright); stroke-width: 1.5; filter: drop-shadow(0 6px 14px var(--lift)); transition: stroke var(--fast) var(--ease), opacity var(--med) var(--ease); }
+  .ve-n .lid { fill: var(--node-top); }
+  .ve-n.is-key .sh { fill: color-mix(in srgb, var(--accent) 11%, var(--surface)); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) var(--halo), transparent)); }
+  .ve-n text { fill: var(--text); text-anchor: middle; dominant-baseline: central; font-weight: 600; }
+  .ve-n .sub { fill: var(--text-dim); font: 500 14px var(--font-mono); }
+  .ve-n .co { fill: var(--text-dim); font: 500 14px var(--font-mono); text-anchor: start; }
+  .ve-n .gl { fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .ve-n.is-key .gl { stroke: var(--accent); }
+  .ve-e { fill: none; stroke: var(--text-dim); stroke-width: 1.75; marker-end: url(#ve-ah); }
+  .ve-e.is-hot { stroke: var(--accent); stroke-width: 2.75; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent)); }
+  .ve-e.is-async { stroke-dasharray: 6 5; }
+  .ve-el { fill: var(--text-dim); font: 500 14px var(--font-mono); text-anchor: middle; paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+  .ve-el.l { text-anchor: end; } .ve-el.r { text-anchor: start; }
+  .bound { fill: none; stroke: var(--border-bright); stroke-width: 1; stroke-dasharray: 4 4; }
+  .tag { fill: var(--text-dim); font: 600 12px var(--font-mono); letter-spacing: .08em; }
+
+  .ve-ref { text-decoration: underline dotted var(--text-dim) 1px; text-underline-offset: .22em; border-radius: var(--r-1); transition: background var(--fast) var(--ease); }
+  .ve-ref.is-lit { background: var(--accent-dim); text-decoration-color: var(--accent); }
+  svg [data-ref] { transition: opacity var(--med) var(--ease); }
+  svg.has-lit path[data-ref]:not(.is-lit), svg.has-lit g[data-ref]:not(.is-lit) .sh { opacity: .25; }
+  svg.has-lit g[data-ref]:not(.is-lit) text, svg.has-lit text[data-ref]:not(.is-lit) { fill: var(--text-dim); }
+  .ve-n.is-lit .sh { stroke: var(--accent); }
+  .ve-e.is-lit { stroke: var(--accent); }
+  .ve-el.is-lit { fill: var(--text); }
+
+  /* stepper */
+  .ve-steps [data-s] { transition: opacity var(--slow) var(--ease), stroke-dashoffset var(--slow) var(--ease); }
+  .ve-steps [data-s]:not(.on) { opacity: .15; }
+  .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 0; }
+  .ve-steps path[pathLength][data-s] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ve-steps path[pathLength][data-s].on { stroke-dashoffset: 0; }
+  .ve-steps .ve-n.now .sh { stroke: var(--accent); }
+  .ve-player { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2) var(--s-3); margin-top: var(--s-4); }
+  .ve-cap { grid-column: 1 / -1; list-style: none; padding: 0; min-height: 3.2em; max-width: 65ch; }
+  .ve-cap li::before { content: attr(data-n); font: 600 var(--t-label) var(--font-mono); color: var(--accent); margin-right: var(--s-3); font-variant-numeric: tabular-nums; }
+  .ve-player input { accent-color: var(--accent); min-width: 0; }
+  button { font: 500 var(--t-small) var(--font-mono); color: var(--text); background: var(--surface); border: 1px solid var(--border-bright); border-radius: var(--r-1); padding: var(--s-2) var(--s-3); cursor: pointer; transition: border-color var(--fast) var(--ease); }
+  button:hover, button:focus-visible { border-color: var(--accent); }
+
+  /* KPI strip */
+  .kpis { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-2); overflow: hidden; }
+  .kpi { flex: 1 1 14rem; background: var(--surface); padding: var(--s-5); display: grid; grid-template-rows: auto auto 1fr; gap: var(--s-3); min-width: 0; }
+  .kpi .val { font: 600 2.75rem/1 var(--font-body); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+  .ve-cells { align-self: end; width: 100%; max-width: 15rem; height: auto; font: 500 13px var(--font-mono); overflow: visible; }
+  .ve-cells text { fill: var(--text-dim); dominant-baseline: central; }
+  .ann { fill: none; stroke: var(--text-dim); stroke-width: 1; }
+  .ve-bars { align-self: end; width: 100%; max-width: 16rem; height: auto; font: 500 13px var(--font-mono); overflow: visible; }
+  .ve-bars text { fill: var(--text-dim); dominant-baseline: central; }
+  .ve-bars rect { fill: var(--border-bright); transform-box: fill-box; transform-origin: left; transition: transform 900ms var(--ease) 150ms; }
+  .ve-bars .hot { fill: var(--accent); }
+  .ve-bars .hot + text { fill: var(--text); }
+
+  /* install cards */
+  .cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr)); gap: var(--s-4); }
+  .case { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); padding: var(--s-4); display: grid; gap: var(--s-3); align-content: start; min-width: 0; }
+  .case pre { font: 400 var(--t-small)/1.5 var(--font-mono); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-1); padding: var(--s-3); overflow-x: auto; white-space: pre; }
+  .case p { color: var(--text-dim); font-size: var(--t-small); }
+
+  .sources { border-top: 1px solid var(--border); padding-top: var(--s-4); display: grid; gap: var(--s-2); }
+  .sources p { max-width: 75ch; }
+
+  .js-motion main > * { transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease); }
+  .js-motion main > :not(.in) { opacity: 0; transform: translateY(1rem); }
+  .js-motion main > :not(.in) .ve-bars rect { transform: scaleX(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --border: #d6e0ea; --border-bright: #818f9e; --text: #0f1a26; --text-dim: #4d6074; --accent: #a34700; --ok: #1c7443; --warn: #776300; --risk: #b0341e; --info: #145f99; --node-top: #fff; }
+    .toc, .ve-player button, .ve-player input { display: none; }
+    .frame { overflow: visible; background: #fff; } .ve-svg { min-width: 0; }
+    .frame, .case, .kpi { break-inside: avoid; } h2 { break-after: avoid; }
+    svg * { filter: none !important; }
+    .js-motion main > * { opacity: 1 !important; transform: none !important; }
+    .js-motion .ve-bars rect { transform: none !important; }
+    .ve-steps [data-s]:not(.on), .ve-steps g[data-s]:not(.on) text, .ve-steps text[data-s]:not(.on) { opacity: 1; }
+    .ve-steps path[pathLength][data-s] { stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ve-ah" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>
+    <linearGradient id="ve-node" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--node-top)"/><stop offset="1" style="stop-color:var(--surface)"/></linearGradient>
+    <pattern id="ve-w-on" width="10" height="10" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="8" height="8" rx="1" style="fill:var(--accent)"/></pattern>
+    <pattern id="ve-w-off" width="10" height="10" patternUnits="userSpaceOnUse"><rect x="1.5" y="1.5" width="7" height="7" rx="1" style="fill:none;stroke:var(--text-dim)"/></pattern>
+  </defs>
+</svg>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#flow">Flow</a></li>
+    <li><a href="#bugfix">Bug fix</a></li>
+    <li><a href="#arena">Arena</a></li>
+    <li><a href="#inventory">Inventory</a></li>
+    <li><a href="#port">Port</a></li>
+    <li><a href="#install">Install</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <header id="flow">
+    <p class="eyebrow">michael-denyer/pstack-claude</p>
+    <h1>Name a goal. <em>poteto-mode</em> ships only verified work.</h1>
+    <p class="lead">pstack routes your request to <span class="ve-ref" data-ref="pb" tabindex="0">one of 23 playbooks</span>, hands each step to <span class="ve-ref" data-ref="dl" tabindex="0">background subagents</span>, and ships nothing until <b class="ve-ref" data-ref="vf" tabindex="0">a check on the real artifact passes</b>.</p>
+    <p class="meta">v0.9.67 · port of Lauren Tan’s Cursor pstack · Claude Code, Codex, Pi · read at dc8e617, 4 Oct 2026</p>
+  </header>
+
+  <figure class="ve-steps">
+    <div class="frame">
+      <svg class="ve-svg" viewBox="0 0 980 440" role="img" aria-label="You state a goal. The SessionStart hook has told the agent to invoke poteto-mode. poteto-mode matches one of 23 playbooks and copies its steps into a todo list. Steps go to background subagents whose models come from pstack-models.md. Results are verified; refuted work goes back. Verified work ships as a PR and a reply with evidence.">
+        <path class="ve-e" data-s="1" pathLength="1" d="M160 80H240"/>
+        <text class="ve-el" data-s="1" x="200" y="71">prompt</text>
+        <path class="ve-e" data-s="2" pathLength="1" d="M410 80H490"/>
+        <text class="ve-el" data-s="2" x="450" y="71">invokes</text>
+        <path class="ve-e" data-s="2" data-ref="pb" pathLength="1" d="M660 80H740"/>
+        <text class="ve-el" data-s="2" data-ref="pb" x="700" y="71">matches</text>
+        <path class="ve-e" data-s="3" data-ref="dl" pathLength="1" d="M850 120V230"/>
+        <text class="ve-el r" data-s="3" data-ref="dl" x="860" y="180">copies steps</text>
+        <path class="ve-e is-async" data-s="3" data-ref="dl" d="M850 360V310"/>
+        <text class="ve-el r" data-s="3" data-ref="dl" x="860" y="340">picks models</text>
+        <path class="ve-e" data-s="4" data-ref="vf" pathLength="1" d="M740 255H660"/>
+        <text class="ve-el" data-s="4" data-ref="vf" x="700" y="246">result</text>
+        <path class="ve-e is-async" data-s="4" data-ref="vf" d="M660 290H740"/>
+        <text class="ve-el" data-s="4" data-ref="vf" x="700" y="281">refuted</text>
+        <path class="ve-e is-hot" data-s="5" data-ref="vf" pathLength="1" d="M490 270H410"/>
+        <text class="ve-el" data-s="5" data-ref="vf" x="450" y="261">passes</text>
+
+        <g class="ve-n" data-s="1" transform="translate(20 40)"><rect class="sh" width="140" height="80" rx="4"/><text x="70" y="30">Your goal</text><text class="sub" x="70" y="54">“fix the filter”</text></g>
+        <g class="ve-n" data-s="1" transform="translate(240 40)"><rect class="sh" width="170" height="80" rx="4"/><text x="85" y="30">SessionStart hook</text><text class="sub" x="85" y="54">routing mandate</text></g>
+        <g class="ve-n is-key" data-s="2" transform="translate(490 40)"><rect class="sh" width="170" height="80" rx="4"/><path class="gl" transform="translate(10 10)" d="M0 4h7M0 12h7M10 1l6 7-6 7"/><text x="85" y="30">poteto-mode</text><text class="sub" x="85" y="54">router</text></g>
+        <g class="ve-n" data-s="2" data-ref="pb" transform="translate(740 40)"><rect class="sh" width="220" height="80" rx="4"/><path class="gl" transform="translate(10 10)" d="M0 0h5v5H0zM0 10h5v5H0zM8 2.5h8M8 12.5h8"/><text x="110" y="30">Playbook</text><text class="sub" x="110" y="54">bug-fix · feature · …</text></g>
+        <g class="ve-n" data-s="3" data-ref="dl" transform="translate(740 230)"><rect class="sh" width="220" height="80" rx="4"/><text x="110" y="30">Plan + delegate</text><text class="sub" x="110" y="54">architect · arena · swarm</text></g>
+        <g class="ve-n" data-s="3" data-ref="dl" transform="translate(740 360)"><path class="sh" d="M0 8V52A110 8 0 0 0 220 52V8"/><ellipse class="sh lid" cx="110" cy="8" rx="110" ry="8"/><text x="110" y="36">pstack-models.md</text></g>
+        <g class="ve-n" data-s="4" data-ref="vf" transform="translate(490 230)"><rect class="sh" width="170" height="80" rx="4"/><text x="85" y="30">Verify</text><text class="sub" x="85" y="54">repro · interrogate</text></g>
+        <g class="ve-n" data-s="5" data-ref="vf" transform="translate(240 230)"><rect class="sh" width="170" height="80" rx="4"/><text x="85" y="30">PR + reply</text><text class="sub" x="85" y="54">evidence quoted</text></g>
+      </svg>
+    </div>
+    <div class="ve-player">
+      <ol class="ve-cap">
+        <li data-n="1/5">You state a goal. At session start, a hook told the agent to route multi-file, design, and unknown-cause work to poteto-mode.</li>
+        <li data-n="2/5">poteto-mode matches the goal to one of 23 playbooks. It copies the playbook steps verbatim into a todo list; a skipped step stays with a reason.</li>
+        <li data-n="3/5">Each step goes to background subagents. Each role takes its model from the defaults or from your pstack-models.md sheet.</li>
+        <li data-n="4/5">The lead verifies on the real artifact: the original repro, tests, a multi-model review. Refuted work goes back.</li>
+        <li data-n="5/5">Only verified work ships: a PR and a reply that quotes the failing and passing output.</li>
+      </ol>
+      <button data-go="-1" aria-label="Previous step">←</button>
+      <button data-play>Play</button>
+      <input type="range" min="0" value="0" aria-label="Step">
+      <button data-go="1" aria-label="Next step">→</button>
+    </div>
+    <figcaption><span class="fig-n">Fig. 1</span>The only way out to a PR is through Verify.</figcaption>
+  </figure>
+
+  <section id="bugfix">
+    <div class="sec-head"><p class="ve-label caps">Example</p><h2>A bug fix: the lead reproduces and verifies, subagents dig and fix</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 960 325" role="img" aria-label="Bug-fix playbook. Lead lane: 1 reproduce on the real surface, 4 verify on the same repro, 5 commit the repro before the fix and open a PR. Subagent lane: 2 find the cause with how and why, 3 fix, through architect when the fix crosses a function boundary. A refuted fix is reverted and the search goes back to step 2.">
+          <rect class="bound" x="10" y="30" width="940" height="110" rx="4"/>
+          <text class="tag" x="22" y="46">LEAD · OWNS THE TASK</text>
+          <rect class="bound" x="10" y="180" width="940" height="110" rx="4"/>
+          <text class="tag" x="22" y="196">SUBAGENTS · BACKGROUND</text>
+
+          <path class="ve-e" d="M160 90H285V205"/>
+          <text class="ve-el" x="222" y="81">fires</text>
+          <path class="ve-e" d="M350 240H410"/>
+          <text class="ve-el" x="380" y="231">cause</text>
+          <path class="ve-e" d="M475 205V162H665V125"/>
+          <text class="ve-el" x="570" y="155">diff</text>
+          <path class="ve-e is-hot" d="M730 90H790"/>
+          <text class="ve-el" x="760" y="81">passes</text>
+          <path class="ve-e is-async" d="M700 125V310H285V275"/>
+          <text class="ve-el" x="490" y="304">refuted: revert</text>
+
+          <g class="ve-n" transform="translate(30 55)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">①</text><text x="65" y="28">Reproduce</text><text class="sub" x="65" y="50">real surface</text></g>
+          <g class="ve-n" transform="translate(220 205)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">②</text><text x="65" y="28">Find cause</text><text class="sub" x="65" y="50">how · why</text></g>
+          <g class="ve-n" transform="translate(410 205)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">③</text><text x="65" y="28">Fix</text><text class="sub" x="65" y="50">via architect</text></g>
+          <g class="ve-n is-key" transform="translate(600 55)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">④</text><text x="65" y="28">Verify</text><text class="sub" x="65" y="50">same repro</text></g>
+          <g class="ve-n" transform="translate(790 55)"><rect class="sh" width="130" height="70" rx="4"/><text class="co" x="8" y="14">⑤</text><text x="65" y="28">Commit + PR</text><text class="sub" x="65" y="50">repro first</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 2</span>“Inconclusive” is not a pass: the fix ships only when the original repro passes on the same surface, and the failing test lands before the fix in git history.</figcaption>
+    </figure>
+  </section>
+
+  <section id="arena">
+    <div class="sec-head"><p class="ve-label caps">Model panel</p><h2>Arena races three model families, then grafts the best parts</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 1000 300" role="img" aria-label="Arena. The lead frames one prompt and a hidden rubric, then spawns Opus, Fable and Sonnet runners in separate worktrees. A cross-judge from another model family scores the candidates. The lead picks a base, grafts the best parts of the losers, and verifies.">
+          <path class="ve-e" d="M150 150H180V60H210"/>
+          <path class="ve-e" d="M150 150H210"/>
+          <text class="ve-el" x="180" y="141">spawns</text>
+          <path class="ve-e" d="M150 150H180V240H210"/>
+          <path class="ve-e" d="M370 60H420V140H470"/>
+          <path class="ve-e" d="M370 150H470"/>
+          <text class="ve-el" x="420" y="141">candidates</text>
+          <path class="ve-e" d="M370 240H420V160H470"/>
+          <path class="ve-e is-async" d="M370 262H470"/>
+          <text class="ve-el" x="430" y="285">reads</text>
+          <path class="ve-e" d="M545 230V180"/>
+          <text class="ve-el r" x="553" y="210">scores</text>
+          <path class="ve-e" d="M620 150H680"/>
+          <text class="ve-el" x="650" y="141">base</text>
+          <path class="ve-e is-hot" d="M810 150H860"/>
+          <text class="ve-el" x="835" y="141">one</text>
+
+          <g class="ve-n" transform="translate(20 115)"><rect class="sh" width="130" height="70" rx="4"/><text x="65" y="26">Frame</text><text class="sub" x="65" y="50">rubric hidden</text></g>
+          <g class="ve-n" transform="translate(210 30)"><rect class="sh" width="160" height="60" rx="4"/><text x="80" y="22">Opus</text><text class="sub" x="80" y="44">worktree 1</text></g>
+          <g class="ve-n" transform="translate(210 120)"><rect class="sh" width="160" height="60" rx="4"/><text x="80" y="22">Fable</text><text class="sub" x="80" y="44">worktree 2</text></g>
+          <g class="ve-n" transform="translate(210 210)"><rect class="sh" width="160" height="60" rx="4"/><text x="80" y="22">Sonnet</text><text class="sub" x="80" y="44">worktree 3</text></g>
+          <g class="ve-n is-key" transform="translate(470 120)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="22">Pick base</text><text class="sub" x="75" y="44">by rubric</text></g>
+          <g class="ve-n" transform="translate(470 230)"><rect class="sh" width="150" height="60" rx="4"/><text x="75" y="22">Cross-judge</text><text class="sub" x="75" y="44">other family</text></g>
+          <g class="ve-n" transform="translate(680 120)"><rect class="sh" width="130" height="60" rx="4"/><text x="65" y="22">Graft</text><text class="sub" x="65" y="44">losers’ best</text></g>
+          <g class="ve-n" transform="translate(860 120)"><rect class="sh" width="120" height="60" rx="4"/><text x="60" y="22">Verify</text><text class="sub" x="60" y="44">result</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 3</span>Diversity comes from model families, not personas. <code>architect</code> and <code>interrogate</code> run the same three-model panel.</figcaption>
+    </figure>
+  </section>
+
+  <section id="inventory">
+    <div class="sec-head"><p class="ve-label caps">Inventory</p><h2>24 of the 57 skills are principles the router cites</h2></div>
+    <figure>
+      <div class="kpis">
+        <div class="kpi"><span class="ve-label">Skills</span><span class="val" data-count="57">57</span>
+          <svg class="ve-cells" viewBox="0 0 240 30" role="img" aria-label="57 skills: 24 principle skills, 33 workflow skills"><rect width="190" height="10" fill="url(#ve-w-on)"/><rect y="10" width="50" height="10" fill="url(#ve-w-on)"/><rect x="50" y="10" width="140" height="10" fill="url(#ve-w-off)"/><rect y="20" width="190" height="10" fill="url(#ve-w-off)"/><path class="ann" d="M194 5H200"/><text x="203" y="5">24</text><text x="203" y="25">33</text></svg>
+          <span class="ve-label">filled = principle · outline = workflow</span></div>
+        <div class="kpi"><span class="ve-label">Playbooks</span><span class="val" data-count="23">23</span>
+          <svg class="ve-bars" viewBox="0 0 240 104" role="img" aria-label="23 playbooks: 6 debug, 6 build, 5 PR and ship, 6 long runs"><text y="12">debug</text><rect x="72" y="5" width="120" height="14" rx="2"/><text x="200" y="12">6</text><text y="38">build</text><rect x="72" y="31" width="120" height="14" rx="2"/><text x="200" y="38">6</text><text y="64">PR, ship</text><rect x="72" y="57" width="100" height="14" rx="2"/><text x="180" y="64">5</text><text y="90">long run</text><rect x="72" y="83" width="120" height="14" rx="2"/><text x="200" y="90">6</text></svg></div>
+        <div class="kpi"><span class="ve-label">Model roles</span><span class="val" data-count="17">17</span>
+          <svg class="ve-bars" viewBox="0 0 240 78" role="img" aria-label="17 roles: 9 on the default model Opus, 4 on the strongest model Fable, 4 on the three-model panel"><text y="12">opus</text><rect class="hot" x="56" y="5" width="144" height="14" rx="2"/><text x="208" y="12">9</text><text y="38">fable</text><rect x="56" y="31" width="64" height="14" rx="2"/><text x="128" y="38">4</text><text y="64">panel</text><rect x="56" y="57" width="64" height="14" rx="2"/><text x="128" y="64">4</text></svg></div>
+        <div class="kpi"><span class="ve-label">Declared forks from upstream</span><span class="val" data-count="46">46</span>
+          <svg class="ve-bars" viewBox="0 0 240 52" role="img" aria-label="46 forks: 40 policy, 6 port features"><text y="12">policy</text><rect x="88" y="5" width="120" height="14" rx="2"/><text x="216" y="12">40</text><text y="40">port</text><rect x="88" y="33" width="18" height="14" rx="2"/><text x="114" y="40">6</text></svg></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 4</span>Bug fixes, perf work and hillclimbs default to the strongest model, Fable; <code>setup-pstack</code> can override any role, with an effort level such as <code>opus @xhigh</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section id="port">
+    <div class="sec-head"><p class="ve-label caps">The port</p><h2>One skills tree ships to every runtime</h2></div>
+    <figure>
+      <div class="frame">
+        <svg class="ve-svg" viewBox="0 0 970 335" role="img" aria-label="sync.mjs pulls upstream cursor/plugins at pin e43c7ee and writes the skills tree, failing on any fork not declared in forks.json. generate.mjs reads models.json and stamps model defaults into the skills; CI fails on a stale copy. The one skills tree ships as the Claude Code, Codex, Pi and Agent Skills builds.">
+          <path class="ve-e" d="M180 170H230"/>
+          <text class="ve-el" x="205" y="161">pulls</text>
+          <path class="ve-e" d="M380 170H430"/>
+          <text class="ve-el" x="405" y="161">sets</text>
+          <path class="ve-e" d="M380 290H430"/>
+          <text class="ve-el" x="405" y="281">feeds</text>
+          <path class="ve-e" d="M505 260V200"/>
+          <text class="ve-el r" x="515" y="235">stamps</text>
+          <path class="ve-e is-hot" d="M580 170H635V50H690"/>
+          <path class="ve-e is-hot" d="M635 130H690"/>
+          <path class="ve-e is-hot" d="M580 170H635V210H690"/>
+          <path class="ve-e is-hot" d="M635 210V290H690"/>
+          <text class="ve-el" x="607" y="161">ships</text>
+
+          <g class="ve-n" transform="translate(20 135)"><rect class="sh" width="160" height="70" rx="4"/><text x="80" y="26">cursor/plugins</text><text class="sub" x="80" y="50">pin e43c7ee</text></g>
+          <g class="ve-n" transform="translate(230 135)"><rect class="sh" width="150" height="70" rx="4"/><text x="75" y="26">sync.mjs</text><text class="sub" x="75" y="50">46 forks only</text></g>
+          <g class="ve-n is-key" transform="translate(430 135)"><rect class="sh" width="150" height="70" rx="4"/><text x="75" y="26">skills/</text><text class="sub" x="75" y="50">57 · one tree</text></g>
+          <g class="ve-n" transform="translate(230 255)"><path class="sh" d="M0 8V62A75 8 0 0 0 150 62V8"/><ellipse class="sh lid" cx="75" cy="8" rx="75" ry="8"/><text x="75" y="40">models.json</text></g>
+          <g class="ve-n" transform="translate(430 260)"><rect class="sh" width="150" height="65" rx="4"/><text x="75" y="22">generate.mjs</text><text class="sub" x="75" y="45">CI --check</text></g>
+          <g class="ve-n" transform="translate(690 20)"><rect class="sh" width="260" height="60" rx="4"/><text x="130" y="21">Claude Code</text><text class="sub" x="130" y="43">.claude-plugin + hook</text></g>
+          <g class="ve-n" transform="translate(690 100)"><rect class="sh" width="260" height="60" rx="4"/><text x="130" y="21">Codex</text><text class="sub" x="130" y="43">.codex-plugin + hook</text></g>
+          <g class="ve-n" transform="translate(690 180)"><rect class="sh" width="260" height="60" rx="4"/><text x="130" y="21">Pi</text><text class="sub" x="130" y="43">package + extension</text></g>
+          <g class="ve-n" transform="translate(690 260)"><rect class="sh" width="260" height="60" rx="4"/><text x="130" y="21">opencode · Gemini · Prime</text><text class="sub" x="130" y="43">~/.agents/skills</text></g>
+        </svg>
+      </div>
+      <figcaption><span class="fig-n">Fig. 5</span>Skills keep upstream’s Claude Code wording; Codex and Pi map tool names through <code>codex-tools.md</code> and <code>pi-tools.md</code> instead of forking every skill.</figcaption>
+    </figure>
+  </section>
+
+  <section id="install">
+    <div class="sec-head"><p class="ve-label caps">Install</p><h2>Two commands, then start with “Use poteto-mode to …”</h2></div>
+    <figure>
+      <div class="cases">
+        <div class="case"><h3>Claude Code</h3><pre>/plugin marketplace add michael-denyer/pstack-claude
+/plugin install pstack@pstack-claude</pre><p>Tune models: <code>/pstack:setup-pstack</code></p></div>
+        <div class="case"><h3>Codex</h3><pre>codex plugin marketplace add michael-denyer/pstack-claude
+codex plugin add pstack@pstack-claude</pre><p>Trust the routing hook in <code>/hooks</code>.</p></div>
+        <div class="case"><h3>Pi</h3><pre>pi install git:github.com/michael-denyer/pstack-claude</pre><p>The extension adds subagent, question and wake-up tools.</p></div>
+      </div>
+      <figcaption><span class="fig-n">Fig. 6</span>No server or telemetry: what the skills read goes only to your model provider.</figcaption>
+    </figure>
+  </section>
+
+  <section class="sources" aria-label="Sources">
+    <p class="ve-label caps">Sources</p>
+    <p>github.com/michael-denyer/pstack-claude at <code>dc8e617</code>: <code>README.md</code> · <code>CONTEXT.md</code> · <code>plugins/pstack/skills/poteto-mode/SKILL.md</code> · <code>…/playbooks/bug-fix.md</code> · <code>plugins/pstack/skills/arena/SKILL.md</code> · <code>plugins/pstack/models.json</code> · <code>plugins/pstack/hooks/session-start-context.md</code> · <code>tools/forks.json</code> · <code>tools/upstream.json</code>. Playbook groups in Fig. 4 are this page’s grouping.</p>
+  </section>
+
+</main>
+<script>
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const linked = [...document.querySelectorAll('[data-ref]')], refs = (el) => el.dataset.ref.split(' ');
+  let hovered = null, focused = null;
+  const paint = () => {
+    const keys = (hovered || focused)?.dataset.ref.split(' ') ?? [];
+    for (const t of linked) t.classList.toggle('is-lit', refs(t).some((k) => keys.includes(k)));
+    for (const svg of document.querySelectorAll('svg')) svg.classList.toggle('has-lit', !!svg.querySelector('.is-lit'));
+  };
+  for (const el of linked) {
+    el.addEventListener('pointerenter', () => { hovered = el; paint(); });
+    el.addEventListener('pointerleave', () => { hovered = null; paint(); });
+    el.addEventListener('focus', () => { focused = el; paint(); });
+    el.addEventListener('blur', () => { focused = null; paint(); });
+  }
+
+  for (const root of document.querySelectorAll('.ve-steps')) {
+    const parts = [...root.querySelectorAll('[data-s]')], caps = [...root.querySelectorAll('.ve-cap li')];
+    const range = root.querySelector('input[type=range]'), play = root.querySelector('[data-play]');
+    const n = caps.length; let i = 0, timer = null;
+    if (range) range.max = n - 1;
+    const show = (k) => {
+      i = Math.max(0, Math.min(n - 1, k));
+      for (const el of parts) { el.classList.toggle('on', +el.dataset.s <= i + 1); el.classList.toggle('now', +el.dataset.s === i + 1); }
+      caps.forEach((c, j) => c.hidden = j !== i);
+      if (range) range.value = i;
+    };
+    const stop = () => { clearInterval(timer); timer = null; if (play) play.textContent = 'Play'; };
+    root.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { stop(); show(i + +b.dataset.go); } });
+    range?.addEventListener('input', () => { stop(); show(+range.value); });
+    play?.addEventListener('click', () => {
+      if (timer) return stop();
+      if (i === n - 1) show(0);
+      play.textContent = 'Pause';
+      timer = setInterval(() => (i < n - 1 ? show(i + 1) : stop()), 3500);
+    });
+    show(n - 1);
+  }
+
+  const navLinks = [...document.querySelectorAll('.toc a')];
+  const spy = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      for (const a of navLinks) a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id);
+      try { history.replaceState(null, '', '#' + e.target.id); } catch {}
+    }
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  for (const a of navLinks) { const t = document.querySelector(a.getAttribute('href')); if (t) spy.observe(t); }
+
+  if (!still) {
+    document.documentElement.classList.add('js-motion');
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        io.unobserve(e.target); e.target.classList.add('in');
+        for (const el of e.target.querySelectorAll('[data-count]')) {
+          const end = +el.dataset.count, t0 = performance.now();
+          const step = (t) => {
+            const k = Math.min(1, (t - t0) / 900);
+            el.textContent = Math.round(end * (1 - (1 - k) ** 3));
+            if (k < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      }
+    }, { rootMargin: '0px 0px -10% 0px' });
+    for (const el of document.querySelectorAll('main > *')) io.observe(el);
+  }
+</script>
+</body>
+</html>
