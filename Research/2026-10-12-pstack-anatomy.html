@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>pstack Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of stacked layers, each layer a band with its own hue; a matrix and a trace below. */
+:root{
+  --bg:#f5f6f3; --surface:#ffffff; --ink:#1b2129; --muted:#5d6672; --line:#d9ddd6;
+  --accent:#b07a12;
+  --entry:#6b7280;  --entry-bg:#eef0f2;
+  --router:#b07a12; --router-bg:#f8efdc;
+  --pb:#2f5f9e;     --pb-bg:#e6eef8;
+  --sk:#2d7a5a;     --sk-bg:#e3f2ea;
+  --pr:#6a4aa8;     --pr-bg:#eee8f8;
+  --sub:#9a4f2b;    --sub-bg:#f6e9e1;
+  --cell0:#eef0ec;
+  --display:"Schibsted Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13171c; --surface:#1b2027; --ink:#e6e9ec; --muted:#9aa3ad; --line:#2d343d;
+  --accent:#e0a83a;
+  --entry:#a3abb5; --entry-bg:#232930;
+  --router:#e0a83a; --router-bg:#33290f;
+  --pb:#7fa9e3; --pb-bg:#1a2738;
+  --sk:#6cc59c; --sk-bg:#16291f;
+  --pr:#b49ae8; --pr-bg:#261e38;
+  --sub:#e08e66; --sub-bg:#35221a;
+  --cell0:#20262d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13171c; --surface:#1b2027; --ink:#e6e9ec; --muted:#9aa3ad; --line:#2d343d;
+  --accent:#e0a83a;
+  --entry:#a3abb5; --entry-bg:#232930;
+  --router:#e0a83a; --router-bg:#33290f;
+  --pb:#7fa9e3; --pb-bg:#1a2738;
+  --sk:#6cc59c; --sk-bg:#16291f;
+  --pr:#b49ae8; --pr-bg:#261e38;
+  --sub:#e08e66; --sub-bg:#35221a;
+  --cell0:#20262d; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px;padding-block:32px 64px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;gap:56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,6vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.02}
+h2{font-size:26px;font-weight:700;letter-spacing:-.01em}
+h3{font-size:16px;font-weight:700}
+p{margin:0;max-width:68ch}
+code,.mono{font-family:var(--mono);font-size:.86em}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted);max-width:62ch}
+header{display:grid;gap:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.count{font:500 13px/1 var(--mono);padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface)}
+.count b{font-weight:600}
+section{display:grid;gap:18px}
+.sec-head{display:grid;gap:6px}
+
+/* corrections */
+.reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.read{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;align-content:start}
+.tag{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:4px;justify-self:start}
+.tag.ok{background:var(--sk-bg);color:var(--sk)}
+.tag.fix{background:var(--router-bg);color:var(--router)}
+.read p{font-size:14px}
+
+/* stack */
+.stack{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;align-items:start}
+@media (max-width:860px){.stack{grid-template-columns:minmax(0,1fr)}}
+.layers{display:grid;gap:0}
+.layer{border-radius:10px;padding:14px 16px;display:grid;gap:10px;border:1px solid var(--line);background:var(--surface);position:relative}
+.layer .lh{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.layer .ln{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:4px}
+.layer p{font-size:14px;color:var(--muted)}
+.arrow{height:30px;display:flex;align-items:center;justify-content:center;font:500 12px/1 var(--mono);color:var(--muted);gap:8px}
+.arrow::before{content:"";width:1px;height:100%;background:var(--line)}
+.L0 .ln{background:var(--entry-bg);color:var(--entry)} .L0{border-left:4px solid var(--entry)}
+.L1 .ln{background:var(--router-bg);color:var(--router)} .L1{border-left:4px solid var(--router)}
+.L2 .ln{background:var(--pb-bg);color:var(--pb)} .L2{border-left:4px solid var(--pb)}
+.L3 .ln{background:var(--sk-bg);color:var(--sk)} .L3{border-left:4px solid var(--sk)}
+.L4 .ln{background:var(--pr-bg);color:var(--pr)} .L4{border-left:4px solid var(--pr)}
+.sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.sbox{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:13px;display:grid;gap:2px;background:var(--bg)}
+.sbox b{font-family:var(--display);font-size:13.5px}
+.sbox span{color:var(--muted)}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.grp{border-radius:6px;padding:8px 10px;display:grid;gap:6px;align-content:start;background:var(--bg);border:1px solid var(--line)}
+.grp .gt{font:600 12px/1.2 var(--display);display:flex;justify-content:space-between;gap:6px}
+.grp .gt i{font:500 11px/1 var(--mono);font-style:normal;color:var(--muted)}
+.grp .gd{font-size:12px;color:var(--muted);line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:500 11.5px/1 var(--mono);padding:4px 6px;border-radius:4px;white-space:nowrap}
+.L2 .chip{background:var(--pb-bg);color:var(--pb)}
+.L3 .chip{background:var(--sk-bg);color:var(--sk)}
+.L4 .chip{background:var(--pr-bg);color:var(--pr)}
+.chip.fb{outline:1px dashed var(--pb);background:transparent}
+.rail{border-radius:10px;padding:14px 16px;display:grid;gap:12px;background:var(--sub-bg);border:1px solid var(--line);border-top:4px solid var(--sub)}
+.rail .ln{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+.rail dl{margin:0;display:grid;gap:10px}
+.rail dt{font:700 13px/1.2 var(--display)}
+.rail dd{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.rail .slots{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font:500 11px/1.5 var(--mono)}
+.rail .slots span:nth-child(odd){color:var(--sub)}
+
+/* axes table */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+/* matrix */
+.mx{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.mx table{font:500 11.5px/1 var(--mono);width:auto;min-width:100%}
+.mx th,.mx td{padding:0;border:0}
+.mx thead th{height:132px;vertical-align:bottom;background:var(--surface);padding:0 0 6px}
+.mx thead th div{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none;font-size:11.5px}
+.mx thead th.grpP div{color:var(--pr)}
+.mx tbody th{font:500 12px/1 var(--mono);text-transform:none;letter-spacing:0;color:var(--ink);padding:0 12px 0 12px;white-space:nowrap;background:var(--surface);position:sticky;left:0;z-index:1}
+.mx tbody th small{color:var(--muted);font-size:10px;margin-left:4px}
+.mx td{width:24px;min-width:24px;height:24px;text-align:center}
+.mx td span{display:block;width:18px;height:18px;margin:3px auto;border-radius:3px;background:var(--cell0)}
+.mx td.s span{background:var(--sk)}
+.mx td.p span{background:var(--pr)}
+.mx td.b span{background:var(--pb)}
+.mx td.sep,.mx th.sep{width:10px;min-width:10px}
+.mx tr.gap th,.mx tr.gap td{height:8px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* trace */
+.trace{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.step .n{font:800 22px/1 var(--display);color:var(--pb)}
+.step .body{display:grid;gap:6px;min-width:0}
+.step .body p{font-size:13.5px;color:var(--muted)}
+.fires{display:flex;flex-wrap:wrap;gap:4px}
+.fires .chip.s{background:var(--sk-bg);color:var(--sk)}
+.fires .chip.p{background:var(--pr-bg);color:var(--pr)}
+.fires .chip.m{background:var(--sub-bg);color:var(--sub)}
+.fires .chip.r{background:var(--router-bg);color:var(--router)}
+.fires .chip.b{background:var(--pb-bg);color:var(--pb)}
+
+.moves{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.move{border-top:2px solid var(--accent);padding-top:10px;display:grid;gap:6px;align-content:start}
+.move p{font-size:14px;color:var(--muted)}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+a{color:var(--pb)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">michael-denyer/pstack-claude · read 2026-10-12</span>
+  <h1>pstack Anatomy</h1>
+  <p class="lede">One router skill, 23 playbooks, 33 workflow skills, 24 principles, 17 model slots. A step in any playbook can pull from every other layer, so the layers cross instead of nesting.</p>
+  <div class="counts">
+    <span class="count"><b>1</b> SessionStart hook</span>
+    <span class="count"><b>1</b> router · poteto-mode</span>
+    <span class="count"><b>23</b> playbooks</span>
+    <span class="count"><b>33</b> workflow skills</span>
+    <span class="count"><b>24</b> principle skills</span>
+    <span class="count"><b>17</b> model role slots</span>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">Your mental model</span><h2>Right on three counts, with two additions</h2></div>
+  <div class="reads">
+    <div class="read"><span class="tag ok">correct</span><h3>poteto-mode is the entry and the router</h3><p>The SessionStart hook tells the agent to invoke it for multi-file work, design choices, and bugs or perf issues with an unknown cause. It then routes to a playbook.</p></div>
+    <div class="read"><span class="tag ok">correct</span><h3>A playbook is a recipe</h3><p>The agent copies the steps into its todolist word for word. Skipping a step needs a written <code>skip: &lt;reason&gt;</code>. Every playbook ends by running Opening a PR.</p></div>
+    <div class="read"><span class="tag ok">correct</span><h3>Principles shape the steps</h3><p>Playbook steps name principles inline. For example, Feature step 3 names separate-before-serializing-shared-state.</p></div>
+    <div class="read"><span class="tag fix">addition</span><h3>Principles also fire on their own</h3><p>poteto-mode lists all 24 principles, each with its own "when" clause. One applies whenever its situation comes up, in any playbook. The agent must read a principle's leaf SKILL.md before citing it.</p></div>
+    <div class="read"><span class="tag fix">addition</span><h3>A separate trigger layer</h3><p>poteto-mode's Non-negotiables fire workflow skills by situation, whatever the playbook. Any prose runs <code>unslop</code>, every commit runs <code>deslop</code>, every review runs <code>no-comments</code>. A "which approach?" question runs the Prototype playbook first.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">Structure</span><h2>The layers</h2><p>Arrows show which layer usually calls which. Any layer can also call a workflow skill or a principle directly.</p></div>
+  <div class="stack">
+    <div class="layers">
+      <div class="layer L0">
+        <div class="lh"><span class="ln">Entry</span><h3>SessionStart hook</h3><code>hooks/hooks.json</code></div>
+        <p>Runs on startup, resume, clear and compact. It injects a rule: invoke <code>pstack:poteto-mode</code> when a task touches more than one file, involves a design choice, or is a bug or perf issue whose cause is unknown. A specific intent can skip the router and go straight to <code>tdd</code>, <code>architect</code>, <code>how</code>, <code>why</code>, <code>arena</code> or <code>interrogate</code>.</p>
+      </div>
+      <div class="arrow">routes into</div>
+      <div class="layer L1">
+        <div class="lh"><span class="ln">Router</span><h3>poteto-mode</h3><code>skills/poteto-mode/SKILL.md</code></div>
+        <div class="sections">
+          <div class="sbox"><b>Non-negotiables</b><span>Situation triggers that fire workflow skills</span></div>
+          <div class="sbox"><b>Principles index</b><span>All 24, each with a "when" clause</span></div>
+          <div class="sbox"><b>Autonomy</b><span>Go ahead on reversible work; always pause before irreversible writes</span></div>
+          <div class="sbox"><b>Subagents</b><span><code>pstack:poteto-agent</code>, a fresh agent per job, an explicit model</span></div>
+          <div class="sbox"><b>Writing the reply</b><span>Prose rules for every reply</span></div>
+          <div class="sbox"><b>Playbooks index</b><span>23 entries, a fallback, project extensions</span></div>
+          <div class="sbox"><b>Models · Effort</b><span>Default model per role, plus <code>@level</code> effort</span></div>
+        </div>
+      </div>
+      <div class="arrow">picks one recipe</div>
+      <div class="layer L2">
+        <div class="lh"><span class="ln">Playbooks · 23</span><h3>Recipes, one per kind of task</h3><code>poteto-mode/playbooks/*.md</code></div>
+        <div class="groups">
+          <div class="grp"><div class="gt">Understand <i>3</i></div><div class="chips"><span class="chip">investigation</span><span class="chip">runtime-forensics</span><span class="chip">trace-forensics</span></div></div>
+          <div class="grp"><div class="gt">Change code <i>9</i></div><div class="chips"><span class="chip">feature</span><span class="chip">bug-fix</span><span class="chip">refactoring</span><span class="chip">perf-issue</span><span class="chip">hillclimb</span><span class="chip">prototype</span><span class="chip">visual-parity</span><span class="chip">authoring-a-skill</span><span class="chip">eval</span></div></div>
+          <div class="grp"><div class="gt">Deliver <i>3</i></div><div class="chips"><span class="chip">opening-a-pr</span><span class="chip">babysit</span><span class="chip">shipping</span></div></div>
+          <div class="grp"><div class="gt">Run long <i>5</i></div><div class="chips"><span class="chip">autonomous-run</span><span class="chip">orchestrate</span><span class="chip">autopilot-full</span><span class="chip">autopilot-stack</span><span class="chip">multi-phase-plan</span></div></div>
+          <div class="grp"><div class="gt">Session <i>3</i></div><div class="chips"><span class="chip">session-pickup</span><span class="chip">pause-safely</span><span class="chip">worktree-cleanup</span></div></div>
+          <div class="grp"><div class="gt">When none fits</div><div class="chips"><span class="chip fb">figure-it-out</span><span class="chip fb">.agents/playbooks/*</span></div><div class="gd">figure-it-out designs a one-off playbook for the task. A repo can add its own playbooks that <code>extends</code> a built-in one by quoting its steps.</div></div>
+        </div>
+      </div>
+      <div class="arrow">steps call tools</div>
+      <div class="layer L3">
+        <div class="lh"><span class="ln">Workflow skills · 33</span><h3>Tools a step or a trigger calls</h3><code>skills/&lt;name&gt;/SKILL.md</code></div>
+        <div class="groups">
+          <div class="grp"><div class="gt">Understand <i>5</i></div><div class="chips"><span class="chip">how</span><span class="chip">why</span><span class="chip">teach</span><span class="chip">recall</span><span class="chip">bro</span></div><div class="gd">Trace code, find the reasons behind it, explain it plainly</div></div>
+          <div class="grp"><div class="gt">Design &amp; multi-model panels <i>4</i></div><div class="chips"><span class="chip">architect</span><span class="chip">arena</span><span class="chip">swarm</span><span class="chip">interrogate</span></div><div class="gd">Several agents run in parallel and the results are combined; panel roles run on a model panel</div></div>
+          <div class="grp"><div class="gt">Prove it works <i>5</i></div><div class="chips"><span class="chip">tdd</span><span class="chip">benchmark-checklist</span><span class="chip">blast-radius</span><span class="chip">create-verification-skill</span><span class="chip">maintain-verification-skill</span></div><div class="gd">Run on the real thing; a proxy check doesn't count</div></div>
+          <div class="grp"><div class="gt">Code quality <i>4</i></div><div class="chips"><span class="chip">deslop</span><span class="chip">no-comments</span><span class="chip">thermo-nuclear-code-quality-review</span><span class="chip">typescript-best-practices</span></div><div class="gd">Checks before a commit or a review</div></div>
+          <div class="grp"><div class="gt">Prose <i>2</i></div><div class="chips"><span class="chip">unslop</span><span class="chip">technical-writing</span></div><div class="gd">Every reply, doc and PR body</div></div>
+          <div class="grp"><div class="gt">PR &amp; CI <i>5</i></div><div class="chips"><span class="chip">babysit</span><span class="chip">fix-ci</span><span class="chip">fix-merge-conflicts</span><span class="chip">get-pr-comments</span><span class="chip">make-pr-easy-to-review</span></div></div>
+          <div class="grp"><div class="gt">Run control &amp; trail <i>3</i></div><div class="chips"><span class="chip">figure-it-out</span><span class="chip">show-me-your-work</span><span class="chip">what-did-i-get-done</span></div><div class="gd">Custom playbooks, decision log, work summary</div></div>
+          <div class="grp"><div class="gt">Self-improvement <i>3</i></div><div class="chips"><span class="chip">reflect</span><span class="chip">correct</span><span class="chip">automate-me</span></div><div class="gd">Turn lessons into edits to skills, lint rules and types</div></div>
+          <div class="grp"><div class="gt">Setup &amp; help <i>2</i></div><div class="chips"><span class="chip">setup-pstack</span><span class="chip">poteto-help</span></div></div>
+        </div>
+      </div>
+      <div class="arrow">judged against</div>
+      <div class="layer L4">
+        <div class="lh"><span class="ln">Principles · 24</span><h3>Leaf skills the model reads on demand</h3><code>user-invocable: false</code></div>
+        <p>None of these is in the slash menu. Only the model reads them, when its "when" clause matches. The groups below are the ones poteto-mode uses.</p>
+        <div class="groups">
+          <div class="grp"><div class="gt">Core <i>10</i></div><div class="chips"><span class="chip">laziness-protocol</span><span class="chip">foundational-thinking</span><span class="chip">redesign-from-first-principles</span><span class="chip">attack-the-premise</span><span class="chip">subtract-before-you-add</span><span class="chip">minimize-reader-load</span><span class="chip">outcome-oriented-execution</span><span class="chip">experience-first</span><span class="chip">exhaust-the-design-space</span><span class="chip">build-the-lever</span></div></div>
+          <div class="grp"><div class="gt">Architecture <i>6</i></div><div class="chips"><span class="chip">model-the-domain</span><span class="chip">boundary-discipline</span><span class="chip">type-system-discipline</span><span class="chip">make-operations-idempotent</span><span class="chip">migrate-callers-then-delete-legacy-apis</span><span class="chip">separate-before-serializing-shared-state</span></div></div>
+          <div class="grp"><div class="gt">Verification <i>5</i></div><div class="chips"><span class="chip">prove-it-works</span><span class="chip">fix-root-causes</span><span class="chip">sequence-verifiable-units</span><span class="chip">test-behavior-not-implementation</span><span class="chip">explain-the-number</span></div></div>
+          <div class="grp"><div class="gt">Delegation <i>2</i></div><div class="chips"><span class="chip">guard-the-context-window</span><span class="chip">never-block-on-the-human</span></div></div>
+          <div class="grp"><div class="gt">Meta <i>1</i></div><div class="chips"><span class="chip">encode-lessons-in-structure</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="rail">
+      <span class="ln">Substrate · under every layer</span>
+      <dl>
+        <div><dt>Subagent types</dt><dd><code>pstack:poteto-agent</code> reads poteto-mode in full before it starts. <code>pstack:effort-&lt;level&gt;</code> and <code>poteto-agent-&lt;level&gt;</code> set only the effort.</dd></div>
+        <div><dt>Model tiers</dt><dd><code>models.json</code>: default <code>opus</code>, strongest <code>fable</code>, panel <code>opus fable sonnet haiku</code>.</dd></div>
+        <div><dt>17 role slots</dt><dd>Each slot is a role with a tier. A line in <code>pstack-models.md</code>, written by <code>/setup-pstack</code>, overrides it, optionally with <code>@effort</code>.</dd>
+          <div class="slots" style="margin-top:6px">
+            <span>strongest</span><span>bug-fix · perf-issue · hillclimb · strongest judgment</span>
+            <span>default</span><span>feature, refactoring · judgment and prose · how ×2 · why ×2 · reflect ×2 · swarm workers</span>
+            <span>panel</span><span>arena runners · arena cross-judge · architect runners · interrogate reviewers</span>
+          </div>
+        </div>
+        <div><dt>Policy forks</dt><dd><code>tools/forks.json</code> and <code>tools/generate.mjs</code> build the port's text for each runtime: Claude Code, Codex, Copilot, Pi.</dd></div>
+      </dl>
+    </aside>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">Why it feels woven</span><h2>Five axes, each with its own selector</h2><p>The agent answers each question separately at every step. The answers combine, so no single tree holds the design.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Axis</th><th>Selected by</th><th>Lives in</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><span class="dot" style="background:var(--pb)"></span><b>What task</b></td><td>The kind of request</td><td>poteto-mode › Playbooks</td><td>new behavior → <code>feature.md</code></td></tr>
+      <tr><td><span class="dot" style="background:var(--sk)"></span><b>What situation</b></td><td>An event during the work</td><td>poteto-mode › Non-negotiables</td><td>before a commit → <code>deslop</code>; a contested design → <code>interrogate</code></td></tr>
+      <tr><td><span class="dot" style="background:var(--pr)"></span><b>How to judge</b></td><td>A principle's "when" clause</td><td>Principles index → leaf SKILL.md</td><td>concurrent writers → separate-before-serializing-shared-state</td></tr>
+      <tr><td><span class="dot" style="background:var(--sub)"></span><b>Which model</b></td><td>The role of the subagent</td><td><code>models.json</code> + <code>pstack-models.md</code></td><td>interrogate reviewers → panel, one reviewer per model</td></tr>
+      <tr><td><span class="dot" style="background:var(--router)"></span><b>Whether to stop</b></td><td>Can the action be undone</td><td>poteto-mode › Autonomy</td><td>a force-push or deploy → pause; anything reversible → go ahead</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">Cross-reference</span><h2>What each playbook names</h2><p>A filled cell means the playbook's own text names that skill, principle or playbook. The Non-negotiables triggers add more on top, such as <code>unslop</code> on every reply.</p></div>
+  <div class="legend"><span><i style="background:var(--sk)"></i>workflow skill</span><span><i style="background:var(--pr)"></i>principle</span><span><i style="background:var(--pb)"></i>hands off to Opening a PR</span></div>
+  <div class="mx" id="mx"></div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">One run, traced</span><h2>Feature, as run on TASK-202</h2><p>Each step pulls in skills, principles and model slots from different layers.</p></div>
+  <div class="trace">
+    <div class="step"><span class="n">1</span><div class="body"><h3><code>how</code> over the affected subsystem</h3><p>Explorer subagents trace the code, and an explainer writes one model of how it works.</p><div class="fires"><span class="chip s">how</span><span class="chip m">how explorer · opus</span><span class="chip m">how explainer · opus</span><span class="chip p">guard-the-context-window</span></div></div></div>
+    <div class="step"><span class="n">2</span><div class="body"><h3><code>architect</code>, which runs <code>arena</code></h3><p>Panel runners each write a design. A judge from a different model family scores them against a rubric. The lead picks one design as the base and grafts in the best parts of the others.</p><div class="fires"><span class="chip s">architect</span><span class="chip s">arena</span><span class="chip m">architect runners · panel</span><span class="chip m">arena cross-judge · panel</span><span class="chip p">exhaust-the-design-space</span><span class="chip r">Prototype first for facts you can measure</span></div></div></div>
+    <div class="step"><span class="n">3</span><div class="body"><h3>Throughput checkpoint</h3><p>Four todo items: blocking first steps, independent workstreams, shared mutable state, and the smallest safe decomposition.</p><div class="fires"><span class="chip p">separate-before-serializing-shared-state</span></div></div></div>
+    <div class="step"><span class="n">4</span><div class="body"><h3>Delegate code-writing</h3><p>A scoped brief that names the data shape and how it is organized.</p><div class="fires"><span class="chip m">feature · opus</span><span class="chip s">poteto-agent</span><span class="chip p">model-the-domain</span><span class="chip r">Any code → name the data shape</span></div></div></div>
+    <div class="step"><span class="n">5</span><div class="body"><h3>Verify on the surface the change touches</h3><p>A result that is inconclusive, or comes from the wrong surface, does not pass. On TASK-202, this step found the <code>CLAUDE_JOB_DIR</code> name override and the error text hidden in the tmux scrollback.</p><div class="fires"><span class="chip p">prove-it-works</span><span class="chip r">Shipping CLI → run</span></div></div></div>
+    <div class="step"><span class="n">6</span><div class="body"><h3>Small, ordered commits</h3><p>Build, verify and commit each unit before starting the next.</p><div class="fires"><span class="chip p">sequence-verifiable-units</span><span class="chip s">deslop</span><span class="chip r">Before commit</span></div></div></div>
+    <div class="step"><span class="n">7</span><div class="body"><h3><code>interrogate</code> if the design is contested</h3><p>The same prompt goes to one reviewer per model. The disagreement comes from the different models, not from assigned personas.</p><div class="fires"><span class="chip s">interrogate</span><span class="chip m">interrogate reviewers · panel</span><span class="chip s">no-comments</span><span class="chip r">Before review</span></div></div></div>
+    <div class="step"><span class="n">8</span><div class="body"><h3>Opening a PR</h3><p>This is a playbook in its own right, run as the last step.</p><div class="fires"><span class="chip b">opening-a-pr</span><span class="chip s">technical-writing</span><span class="chip s">unslop</span><span class="chip m">judgment and prose · opus</span></div></div></div>
+  </div>
+  <div class="legend"><span><i style="background:var(--sk)"></i>workflow skill</span><span><i style="background:var(--pr)"></i>principle</span><span><i style="background:var(--sub)"></i>model slot</span><span><i style="background:var(--router)"></i>Non-negotiables trigger</span></div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">Design moves</span><h2>What keeps the crossing manageable</h2></div>
+  <div class="moves">
+    <div class="move"><h3>The index holds the triggers; each leaf holds the content</h3><p>poteto-mode keeps one line per principle: when it applies. The full text lives only in the leaf skill, and the agent must read it before citing it. Context stays small until a principle is actually needed.</p></div>
+    <div class="move"><h3>Recipes are copied, not paraphrased</h3><p>Playbook steps go into the todolist word for word. A skipped step stays in the list with its reason, so drift is visible.</p></div>
+    <div class="move"><h3>Roles are separate from models</h3><p>Skills name a role slot, never a model. One line in the override sheet changes which model fills a role in every skill.</p></div>
+    <div class="move"><h3>Extensions quote the steps they change</h3><p>A project playbook anchors each change on the quoted text of a built-in step. <code>check-playbooks.mjs</code> fails when an upgrade rewrites that text.</p></div>
+  </div>
+</section>
+
+<footer>Source: <code>plugins/pstack/</code> of michael-denyer/pstack-claude (HEAD on 2026-10-12): 58 SKILL.md files (1 router, 33 workflow skills, 24 principles), 23 playbooks, <code>models.json</code> with 17 roles. Matrix cells come from searching each playbook's text for skill names; mentions that say a skill is not used (for example "no babysit" in Investigation) were removed by hand. The workflow-skill groups are this page's own grouping; the principle groups are poteto-mode's.</footer>
+</div>
+
+<script>
+(function(){
+  var S=["how","why","architect","arena","interrogate","swarm","tdd","benchmark-checklist","blast-radius","figure-it-out","show-me-your-work","unslop","technical-writing","deslop","no-comments","babysit"];
+  var P=["model-the-domain","separate-before-serializing-shared-state","sequence-verifiable-units","prove-it-works","guard-the-context-window","encode-lessons-in-structure","laziness-protocol","build-the-lever","foundational-thinking","subtract-before-you-add","minimize-reader-load","redesign-from-first-principles","migrate-callers-then-delete-legacy-apis","exhaust-the-design-space","never-block-on-the-human"];
+  var G=[
+   ["Understand",[
+    ["investigation","how why unslop","",0],
+    ["runtime-forensics","how","guard-the-context-window",0],
+    ["trace-forensics","","guard-the-context-window",0]]],
+   ["Change code",[
+    ["feature","how why architect arena interrogate","model-the-domain separate-before-serializing-shared-state sequence-verifiable-units",1],
+    ["bug-fix","how why architect interrogate tdd","sequence-verifiable-units",1],
+    ["refactoring","how architect figure-it-out","model-the-domain sequence-verifiable-units prove-it-works laziness-protocol foundational-thinking subtract-before-you-add minimize-reader-load redesign-from-first-principles migrate-callers-then-delete-legacy-apis",1],
+    ["perf-issue","how architect benchmark-checklist","sequence-verifiable-units",1],
+    ["hillclimb","how benchmark-checklist show-me-your-work","separate-before-serializing-shared-state sequence-verifiable-units prove-it-works guard-the-context-window laziness-protocol build-the-lever",1],
+    ["prototype","architect","exhaust-the-design-space",0],
+    ["visual-parity","","separate-before-serializing-shared-state",1],
+    ["authoring-a-skill","","encode-lessons-in-structure",1],
+    ["eval","arena","",0]]],
+   ["Deliver",[
+    ["opening-a-pr","how why arena interrogate swarm unslop technical-writing deslop no-comments babysit","",0],
+    ["babysit","babysit","",0],
+    ["shipping","babysit","",0]]],
+   ["Run long",[
+    ["autonomous-run","show-me-your-work","sequence-verifiable-units",0],
+    ["orchestrate","how why arena swarm blast-radius figure-it-out show-me-your-work babysit","separate-before-serializing-shared-state encode-lessons-in-structure",0],
+    ["autopilot-full","why swarm show-me-your-work deslop no-comments babysit","prove-it-works",0],
+    ["autopilot-stack","show-me-your-work deslop no-comments babysit","",0],
+    ["multi-phase-plan","how why interrogate swarm show-me-your-work unslop technical-writing deslop no-comments babysit","sequence-verifiable-units prove-it-works guard-the-context-window encode-lessons-in-structure never-block-on-the-human",1]]],
+   ["Session",[
+    ["session-pickup","why","prove-it-works guard-the-context-window",0],
+    ["pause-safely","show-me-your-work","",0],
+    ["worktree-cleanup","","prove-it-works guard-the-context-window encode-lessons-in-structure build-the-lever",0]]]
+  ];
+  function th(t,c){return '<th class="'+(c||"")+'"><div>'+t+'</div></th>'}
+  var h='<table><thead><tr><th style="background:var(--surface)"></th>';
+  S.forEach(function(s){h+=th(s)});
+  h+='<th class="sep"></th>';
+  P.forEach(function(p){h+=th(p,"grpP")});
+  h+='<th class="sep"></th>'+th("opening-a-pr")+'</tr></thead><tbody>';
+  G.forEach(function(g,gi){
+    if(gi) h+='<tr class="gap"><th></th></tr>';
+    g[1].forEach(function(r){
+      var ss=r[1].split(" "),pp=r[2].split(" ");
+      h+='<tr><th>'+r[0]+'</th>';
+      S.forEach(function(s){var on=ss.indexOf(s)>=0;h+='<td class="'+(on?"s":"")+'" title="'+r[0]+(on?" names ":" does not name ")+s+'"><span></span></td>'});
+      h+='<td class="sep"></td>';
+      P.forEach(function(p){var on=pp.indexOf(p)>=0;h+='<td class="'+(on?"p":"")+'" title="'+r[0]+(on?" names ":" does not name ")+p+'"><span></span></td>'});
+      h+='<td class="sep"></td><td class="'+(r[3]?"b":"")+'"><span></span></td></tr>';
+    });
+  });
+  document.getElementById("mx").innerHTML=h+'</tbody></table>';
+})();
+</script>
+</body>
+</html>
