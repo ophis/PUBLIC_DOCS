@@ -149,6 +149,34 @@ td .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right
 .moves{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
 .move{border-top:2px solid var(--accent);padding-top:10px;display:grid;gap:6px;align-content:start}
 .move p{font-size:14px;color:var(--muted)}
+/* map */
+.dg-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px}
+.dg{display:block;width:100%;min-width:880px;height:auto}
+.dg .h{font:700 15px var(--display);fill:var(--ink)}
+.dg .hc{font:700 13px var(--display);fill:var(--ink)}
+.dg .sub{font:400 11px var(--body);fill:var(--muted)}
+.dg .it{font:400 10.5px var(--body);fill:var(--ink)}
+.dg .pn{font:400 10px var(--body);fill:var(--ink)}
+.dg .lbl{font:500 10px var(--mono);fill:var(--muted)}
+.dg .g-pb{font:700 11.5px var(--display);fill:var(--pb)}
+.dg .g-sk{font:700 11.5px var(--display);fill:var(--sk)}
+.dg .g-pr{font:700 11.5px var(--display);fill:var(--pr)}
+.dg .g-sub{font:700 12px var(--display);fill:var(--sub)}
+.dg .cnt{font:500 10.5px var(--mono);fill:var(--muted)}
+.dg .b-entry{fill:var(--entry-bg);stroke:var(--entry);stroke-width:1.2}
+.dg .b-router{fill:var(--router-bg);stroke:var(--router);stroke-width:1.4}
+.dg .b-pb{fill:var(--pb-bg);stroke:var(--pb);stroke-width:1.2}
+.dg .b-sk{fill:var(--sk-bg);stroke:var(--sk);stroke-width:1.2}
+.dg .b-pr{fill:var(--pr-bg);stroke:var(--pr);stroke-width:1.2}
+.dg .b-sub{fill:var(--sub-bg);stroke:var(--sub);stroke-width:1.2}
+.dg .row{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.dg .port{fill:var(--surface);stroke-width:1.4}
+.dg .a{fill:none;stroke-width:1.6}
+.dg .a-mu{stroke:var(--muted)} .dg .m-mu{fill:var(--muted)}
+.dg .a-pb{stroke:var(--pb)} .dg .m-pb{fill:var(--pb)}
+.dg .a-sk{stroke:var(--sk)} .dg .m-sk{fill:var(--sk)}
+.dg .a-pr{stroke:var(--pr)} .dg .m-pr{fill:var(--pr)}
+.dg .pill{fill:var(--surface)}
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 a{color:var(--pb)}
 </style>
@@ -170,6 +198,173 @@ a{color:var(--pb)}
     <span class="count"><b>17</b> model role slots</span>
   </div>
 </header>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">The map</span><h2>How the pieces connect</h2><p>The router has three indexes, and each one routes to its own layer. The playbooks, workflow skills and principles then call each other. Every subagent at any layer gets its model from a role slot.</p></div>
+  <div class="dg-wrap">
+  <svg class="dg" viewBox="0 0 1100 912" role="img" aria-label="pstack structure: SessionStart hook to poteto-mode router; router's three indexes route to playbooks, workflow skills and principles; playbooks call skills and name principles; skills are judged against principles; a model substrate under all layers.">
+    <defs>
+      <marker id="m-mu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-mu" d="M0 0L10 5L0 10z"/></marker>
+      <marker id="m-pb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-pb" d="M0 0L10 5L0 10z"/></marker>
+      <marker id="m-sk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-sk" d="M0 0L10 5L0 10z"/></marker>
+      <marker id="m-pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-pr" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+
+    <!-- entry -->
+    <rect class="b-entry" x="330" y="12" width="440" height="60" rx="30"/>
+    <text class="hc" x="550" y="37" text-anchor="middle">SessionStart hook</text>
+    <text class="sub" x="550" y="56" text-anchor="middle">or straight into tdd · architect · how · why · arena · interrogate</text>
+    <path class="a a-mu" d="M550 72V104" marker-end="url(#m-mu)"/>
+    <text class="lbl" x="562" y="93">multi-file · design choice · unknown-cause bug or perf</text>
+
+    <!-- router -->
+    <rect class="b-router" x="30" y="108" width="1040" height="118" rx="14"/>
+    <text class="h" x="48" y="134">poteto-mode</text>
+    <text class="sub" x="148" y="134">router · skills/poteto-mode/SKILL.md</text>
+    <text class="sub" x="1052" y="134" text-anchor="end">also: Autonomy · Subagents · Writing the reply · Models</text>
+    <rect class="port" style="stroke:var(--pb)" x="46" y="146" width="268" height="62" rx="8"/>
+    <text class="g-pb" x="180" y="170" text-anchor="middle">Playbooks index</text>
+    <text class="sub" x="180" y="190" text-anchor="middle">task → recipe · 23 + a fallback</text>
+    <rect class="port" style="stroke:var(--sk)" x="386" y="146" width="338" height="62" rx="8"/>
+    <text class="g-sk" x="555" y="170" text-anchor="middle">Non-negotiables</text>
+    <text class="sub" x="555" y="190" text-anchor="middle">situation → tool, in any playbook</text>
+    <rect class="port" style="stroke:var(--pr)" x="796" y="146" width="258" height="62" rx="8"/>
+    <text class="g-pr" x="925" y="170" text-anchor="middle">Principles index</text>
+    <text class="sub" x="925" y="190" text-anchor="middle">“when” clause → principle</text>
+
+    <path class="a a-pb" d="M180 208V286" marker-end="url(#m-pb)"/>
+    <text class="lbl" x="190" y="252">picks one</text>
+    <path class="a a-sk" d="M555 208V286" marker-end="url(#m-sk)"/>
+    <text class="lbl" x="565" y="252">fires on events</text>
+    <path class="a a-pr" d="M925 208V286" marker-end="url(#m-pr)"/>
+    <text class="lbl" x="935" y="252">applies when it fits</text>
+
+    <!-- playbooks column -->
+    <rect class="b-pb" x="30" y="290" width="300" height="420" rx="12"/>
+    <text class="h" x="46" y="316">Playbooks · 23</text>
+    <text class="sub" x="46" y="334">recipes, copied word for word into the todolist</text>
+    <rect class="row" x="44" y="346" width="272" height="52" rx="6"/>
+    <text class="g-pb" x="56" y="362">Understand</text><text class="cnt" x="304" y="362" text-anchor="end">3</text>
+    <text class="it" x="56" y="378">investigation · runtime-forensics ·</text>
+    <text class="it" x="56" y="392">trace-forensics</text>
+    <rect class="row" x="44" y="404" width="272" height="66" rx="6"/>
+    <text class="g-pb" x="56" y="420">Change code</text><text class="cnt" x="304" y="420" text-anchor="end">9</text>
+    <text class="it" x="56" y="436">feature · bug-fix · refactoring · perf-issue</text>
+    <text class="it" x="56" y="450">hillclimb · prototype · visual-parity · eval</text>
+    <text class="it" x="56" y="464">authoring-a-skill</text>
+    <rect class="row" x="44" y="476" width="272" height="38" rx="6"/>
+    <text class="g-pb" x="56" y="492">Deliver</text><text class="cnt" x="304" y="492" text-anchor="end">3</text>
+    <text class="it" x="56" y="508">opening-a-pr · babysit · shipping</text>
+    <rect class="row" x="44" y="520" width="272" height="66" rx="6"/>
+    <text class="g-pb" x="56" y="536">Run long</text><text class="cnt" x="304" y="536" text-anchor="end">5</text>
+    <text class="it" x="56" y="552">autonomous-run · orchestrate</text>
+    <text class="it" x="56" y="566">autopilot-full · autopilot-stack</text>
+    <text class="it" x="56" y="580">multi-phase-plan</text>
+    <rect class="row" x="44" y="592" width="272" height="52" rx="6"/>
+    <text class="g-pb" x="56" y="608">Session</text><text class="cnt" x="304" y="608" text-anchor="end">3</text>
+    <text class="it" x="56" y="624">session-pickup · pause-safely ·</text>
+    <text class="it" x="56" y="638">worktree-cleanup</text>
+    <text class="lbl" x="46" y="666">none fits → figure-it-out</text>
+    <text class="lbl" x="46" y="682">repo adds .agents/playbooks/*</text>
+    <text class="lbl" x="46" y="698">every one ends → opening-a-pr</text>
+
+    <!-- skills column -->
+    <rect class="b-sk" x="370" y="290" width="370" height="420" rx="12"/>
+    <text class="h" x="386" y="316">Workflow skills · 33</text>
+    <text class="sub" x="386" y="334">tools that steps and triggers call</text>
+    <rect class="row" x="384" y="346" width="342" height="28" rx="6"/>
+    <text class="g-sk" x="396" y="364">Understand</text><text class="it" x="480" y="364">how · why · teach · recall · bro</text>
+    <rect class="row" x="384" y="378" width="342" height="28" rx="6"/>
+    <text class="g-sk" x="396" y="396">Panels</text><text class="it" x="480" y="396">architect · arena · swarm · interrogate</text>
+    <rect class="row" x="384" y="410" width="342" height="42" rx="6"/>
+    <text class="g-sk" x="396" y="428">Prove</text><text class="it" x="480" y="428">tdd · benchmark-checklist · blast-radius</text>
+    <text class="it" x="480" y="442">create- / maintain-verification-skill</text>
+    <rect class="row" x="384" y="456" width="342" height="56" rx="6"/>
+    <text class="g-sk" x="396" y="474">Quality</text><text class="it" x="480" y="474">deslop · no-comments</text>
+    <text class="it" x="480" y="488">thermo-nuclear-code-quality-review</text>
+    <text class="it" x="480" y="502">typescript-best-practices</text>
+    <rect class="row" x="384" y="516" width="342" height="28" rx="6"/>
+    <text class="g-sk" x="396" y="534">Prose</text><text class="it" x="480" y="534">unslop · technical-writing</text>
+    <rect class="row" x="384" y="548" width="342" height="42" rx="6"/>
+    <text class="g-sk" x="396" y="566">PR &amp; CI</text><text class="it" x="480" y="566">babysit · fix-ci · fix-merge-conflicts</text>
+    <text class="it" x="480" y="580">get-pr-comments · make-pr-easy-to-review</text>
+    <rect class="row" x="384" y="594" width="342" height="42" rx="6"/>
+    <text class="g-sk" x="396" y="612">Trail</text><text class="it" x="480" y="612">figure-it-out · show-me-your-work</text>
+    <text class="it" x="480" y="626">what-did-i-get-done</text>
+    <rect class="row" x="384" y="640" width="342" height="28" rx="6"/>
+    <text class="g-sk" x="396" y="658">Self-improve</text><text class="it" x="480" y="658">reflect · correct · automate-me</text>
+    <rect class="row" x="384" y="672" width="342" height="28" rx="6"/>
+    <text class="g-sk" x="396" y="690">Setup</text><text class="it" x="480" y="690">setup-pstack · poteto-help</text>
+
+    <!-- principles column -->
+    <rect class="b-pr" x="780" y="290" width="290" height="420" rx="12"/>
+    <text class="h" x="796" y="316">Principles · 24</text>
+    <text class="sub" x="796" y="334">user-invocable: false · read on demand</text>
+    <rect class="row" x="794" y="346" width="262" height="97" rx="6"/>
+    <text class="g-pr" x="806" y="361">Core</text><text class="cnt" x="1044" y="361" text-anchor="end">10</text>
+    <text class="pn" x="806" y="375">laziness-protocol · foundational-thinking ·</text>
+    <text class="pn" x="806" y="387.5">redesign-from-first-principles ·</text>
+    <text class="pn" x="806" y="400">attack-the-premise · subtract-before-you-add ·</text>
+    <text class="pn" x="806" y="412.5">minimize-reader-load · experience-first ·</text>
+    <text class="pn" x="806" y="425">outcome-oriented-execution ·</text>
+    <text class="pn" x="806" y="437.5">exhaust-the-design-space · build-the-lever</text>
+    <rect class="row" x="794" y="447" width="262" height="84.5" rx="6"/>
+    <text class="g-pr" x="806" y="462">Architecture</text><text class="cnt" x="1044" y="462" text-anchor="end">6</text>
+    <text class="pn" x="806" y="476">model-the-domain · boundary-discipline ·</text>
+    <text class="pn" x="806" y="488.5">type-system-discipline ·</text>
+    <text class="pn" x="806" y="501">make-operations-idempotent ·</text>
+    <text class="pn" x="806" y="513.5">migrate-callers-then-delete-legacy-apis ·</text>
+    <text class="pn" x="806" y="526">separate-before-serializing-shared-state</text>
+    <rect class="row" x="794" y="535.5" width="262" height="72" rx="6"/>
+    <text class="g-pr" x="806" y="550.5">Verification</text><text class="cnt" x="1044" y="550.5" text-anchor="end">5</text>
+    <text class="pn" x="806" y="564.5">prove-it-works · fix-root-causes ·</text>
+    <text class="pn" x="806" y="577">sequence-verifiable-units ·</text>
+    <text class="pn" x="806" y="589.5">test-behavior-not-implementation ·</text>
+    <text class="pn" x="806" y="602">explain-the-number</text>
+    <rect class="row" x="794" y="611.5" width="262" height="47" rx="6"/>
+    <text class="g-pr" x="806" y="626.5">Delegation</text><text class="cnt" x="1044" y="626.5" text-anchor="end">2</text>
+    <text class="pn" x="806" y="640.5">guard-the-context-window ·</text>
+    <text class="pn" x="806" y="653">never-block-on-the-human</text>
+    <rect class="row" x="794" y="662.5" width="262" height="34.5" rx="6"/>
+    <text class="g-pr" x="806" y="677.5">Meta</text><text class="cnt" x="1044" y="677.5" text-anchor="end">1</text>
+    <text class="pn" x="806" y="691.5">encode-lessons-in-structure</text>
+
+    <!-- cross links -->
+    <path class="a a-sk" d="M330 434H368" marker-end="url(#m-sk)"/>
+    <text class="lbl" x="350" y="414" text-anchor="middle">steps</text>
+    <text class="lbl" x="350" y="426" text-anchor="middle">call</text>
+    <path class="a a-pr" d="M740 470H778" marker-end="url(#m-pr)"/>
+    <text class="lbl" x="760" y="450" text-anchor="middle">judged</text>
+    <text class="lbl" x="760" y="462" text-anchor="middle">by</text>
+    <path class="a a-pr" d="M180 710C180 760 925 760 925 714" marker-end="url(#m-pr)" stroke-dasharray="5 4"/>
+    <rect class="pill" x="440" y="737" width="230" height="20" rx="10"/>
+    <text class="lbl" x="555" y="751" text-anchor="middle">playbook steps name principles inline</text>
+
+    <!-- substrate -->
+    <rect class="b-sub" x="30" y="774" width="1040" height="128" rx="14"/>
+    <text class="g-sub" x="48" y="798">Substrate · every subagent dispatch</text>
+    <text class="sub" x="1052" y="798" text-anchor="end">models.json tiers → 17 role slots</text>
+    <rect class="row" x="46" y="810" width="236" height="78" rx="8"/>
+    <text class="hc" x="58" y="830">strongest · fable</text>
+    <text class="it" x="58" y="848">bug-fix · perf-issue · hillclimb ·</text>
+    <text class="it" x="58" y="862">strongest judgment</text>
+    <rect class="row" x="294" y="810" width="300" height="78" rx="8"/>
+    <text class="hc" x="306" y="830">default · opus</text>
+    <text class="it" x="306" y="848">feature, refactoring · judgment and prose ·</text>
+    <text class="it" x="306" y="862">how ×2 · why ×2 · reflect ×2 · swarm workers</text>
+    <rect class="row" x="606" y="810" width="256" height="78" rx="8"/>
+    <text class="hc" x="618" y="830">panel · opus fable sonnet haiku</text>
+    <text class="it" x="618" y="848">arena runners · arena cross-judge ·</text>
+    <text class="it" x="618" y="862">architect runners ·</text>
+    <text class="it" x="618" y="876">interrogate reviewers</text>
+    <rect class="row" x="874" y="810" width="180" height="78" rx="8"/>
+    <text class="hc" x="886" y="830">Dispatch</text>
+    <text class="it" x="886" y="848">pstack:poteto-agent[-level]</text>
+    <text class="it" x="886" y="862">pstack-models.md overrides</text>
+    <text class="it" x="886" y="876">written by /setup-pstack</text>
+  </svg>
+  </div>
+</section>
 
 <section>
   <div class="sec-head"><span class="eyebrow">Your mental model</span><h2>Right on three counts, with two additions</h2></div>
