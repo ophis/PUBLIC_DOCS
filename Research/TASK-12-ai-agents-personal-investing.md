@@ -16,35 +16,140 @@
 ## 产品对比
 
 - 综合判断：沿用原报告的成熟度评价。
-- 末列保留原报告置信度及其证据说明。
+- 表现仅据原文；“未列”不等于产品没有效果。
+- 可审计不等于已独立审计；末列置信度不代表收益已验证。
 
-| 产品 | 定位 | 成熟度 | 原报告置信度与证据 |
-|---|---|---|---|
-| Robinhood Agentic Trading | 券商执行 | ⚠️ 新兴；隔离子账户 | 高（已核实）；2026-05 上线 |
-| Scalable Capital | 券商执行 | ⚠️ 新兴；明确确认 | 高（已核实）；2026-08 上线 |
-| Public AI agents | 券商执行 | ⚠️ 新兴；预设指令 | 高（已核实）；2026 年上线 |
-| moomoo API Skills | 券商执行 | ⚠️ 默认纸上交易 | 高（已核实）；2026-04 官宣，Q1 财报确认上线 |
-| Ask IBKR | 组合投研 | ✅ 成熟；账户内免费 | 高（已核实）；2025-10 上线 |
-| eToro Tori | 券商助手 | ⚠️ 新兴；索引证据 | 中（索引）；2026-07 发布 |
-| Alpaca | 券商基础设施 | ⚠️ 持续发展 | 高（已核实）；合作券商基础设施 |
-| Danelfin | 量化筛选 | ✅ 成熟 | 高（官方页已核实）；Plus $12–25/月 |
-| Trade Ideas | 信号与扫描 | ✅ 成熟；活跃交易者 | 高（官方页已核实）；年付折合 $89–178/月 |
-| PortfolioPilot | 组合分析 | ✅ 可用 | 高（官方页已核实）；Gold $20–29/月 |
-| Magnifi | 对话式投顾 | ✅ 可用 | 中高（官方应用商店描述）；Premium $8.25–14/月 |
-| Intellectia AI | 投研信号 | ⚠️ 收益未验证 | 中高（多源一致）；可用 |
-| TrendSpider | 技术分析 | ✅ 可用；无免费版 | 中高（多源一致） |
-| Tickeron | 交易机器人 | ⚠️ 营销口径重 | 中（多源一致）；可用 |
-| Composer by SoFi | 规则自动化 | ✅ 2026-06 被收购 | 高（官方新闻稿与定价页） |
-| Autopilot | 复制交易 | ⚠️ 可用；有投诉 | 中（次级信源） |
-| Assistants + Parqet | 组合助手 | ✅ 可用；实用首选 | 高（已核实）；约 $20/月 + Parqet 免费档 |
-| TradingAgents 及同类 | 开源框架 | ⚠️ 研究；纸上交易 | 高（已核实为研究性质）；免费，token 费用自理 |
+| 产品 | 定位 | 成熟度 | 表现 | 原报告置信度与证据 |
+|---|---|---|---|---|
+| Robinhood Agentic Trading | 券商执行 | ⚠️ 新兴；隔离子账户 | 未列实盘业绩 | 高（已核实）；2026-05 上线 |
+| Scalable Capital | 券商执行 | ⚠️ 新兴；明确确认 | 未列实盘业绩 | 高（已核实）；2026-08 上线 |
+| Public AI agents | 券商执行 | ⚠️ 新兴；预设指令 | 未列实盘业绩 | 高（已核实）；2026 年上线 |
+| moomoo API Skills | 券商执行 | ⚠️ 默认纸上交易 | 未列实盘业绩 | 高（已核实）；2026-04 官宣，Q1 财报确认上线 |
+| Ask IBKR | 组合投研 | ✅ 成熟；账户内免费 | 未列量化效果 | 高（已核实）；2025-10 上线 |
+| eToro Tori | 券商助手 | ⚠️ 新兴；索引证据 | 未列量化效果 | 中（索引）；2026-07 发布 |
+| Alpaca | 券商基础设施 | ⚠️ 持续发展 | 未列投资业绩 | 高（已核实）；合作券商基础设施 |
+| Danelfin | 量化筛选 | ✅ 成熟 | 分档回测可审计 [13] | 高（官方页已核实）；Plus $12–25/月 |
+| Trade Ideas | 信号与扫描 | ✅ 成熟；活跃交易者 | 未列收益结果 | 高（官方页已核实）；年付折合 $89–178/月 |
+| PortfolioPilot | 组合分析 | ✅ 可用 | 未列量化效果 | 高（官方页已核实）；Gold $20–29/月 |
+| Magnifi | 对话式投顾 | ✅ 可用 | 未列量化效果 | 中高（官方应用商店描述）；Premium $8.25–14/月 |
+| Intellectia AI | 投研信号 | ⚠️ 收益未验证 | 回测/用户自述；未验证 [18] | 中高（多源一致）；可用 |
+| TrendSpider | 技术分析 | ✅ 可用；无免费版 | 未列收益结果 | 中高（多源一致） |
+| Tickeron | 交易机器人 | ⚠️ 营销口径重 | 自称150%–360%；未验证 [21] | 中（多源一致）；可用；自称回测年化169%–270%，未独立审计 |
+| Composer by SoFi | 规则自动化 | ✅ 2026-06 被收购 | 未列收益结果 | 高（官方新闻稿与定价页） |
+| Autopilot | 复制交易 | ⚠️ 可用；有投诉 | 未列收益结果 | 中（次级信源）；用户量与资金量未验证 |
+| Assistants + Parqet | 组合助手 | ✅ 可用；实用首选 | 未列量化效果 | 高（已核实）；约 $20/月 + Parqet 免费档 |
+| TradingAgents 及同类 | 开源框架 | ⚠️ 研究；纸上交易 | 30天+7%；未验证 [33] | 高（已核实为研究性质）；免费，token 费用自理；详见表现节 |
+| Kavout | 量化评级 | ⚠️ 索引；营销口径 | 自称超额；未验证 [25] | 中；单一营销文章，未列收益数字 |
+| AltIndex | 另类数据筛选 | ⚠️ 索引；单源 | 未列收益结果 | 中；单一营销文章 [25] |
+| Paramount AI / Invest AI | 自主交易宣传 | ⚠️ 付费稿索引 | 自称胜95%产品；未验证 [27] | 中；内部基准，非收益率 |
+| Options Alpha Agent | 开源比赛实例 | ⚠️ 纸上账户 | $100k模拟；无方向优势 [34] | 中（未验证）；未列收益结果 |
 
 - 图例：✅ 可用或成熟；⚠️ 新兴、有限制或存在争议。
 
 ## 研究发现
 
 <details>
-<summary>研究发现（8 部分）</summary>
+<summary>研究发现（9 部分）</summary>
+
+### 表现：这些 agent 实际效果如何
+
+**尚无 large language model（LLM）系统被证明持续跑赢市场。**
+(medium; [33][34]; unverified)
+
+投研、组合分析、筛选与摘要已可用；这是用途判断。
+(medium; [2][13][26])
+
+**Saturn 的理财正确率基准不衡量投资收益。** (high; [1])
+
+“Artificial Authority”于 2026-09-21 发布。 (high; [1])
+
+18 个模型、121 道题 × 5 轮，共 10,000+ 回答。 (high; [1])
+
+平均准确率 43%，错误或不完整占 57%。 (high; [1])
+
+难题准确率 12%，涉及交互税法、精确数字。 (high; [1])
+
+最佳 Claude Opus 5（reasoning）整体仍约错 40%。 (high; [1])
+
+其难题错误率 67%；错误与正确答案语气同样自信。 (high; [1])
+
+错误中 6.1% 编造规则，2.3% 使用过时法规。 (high; [1])
+
+免费模型失败率 63%，付费模型 49%。 (high; [1])
+
+这使最请不起投顾的人得到更差的免费建议；次级报道已核实。
+(high; [1])
+
+**TradingAgents 有一次短期实盘记录，未验证。**
+(medium; [33]; unverified)
+
+运行 30 天：+7%，同期 S&P 500 +4.5%。
+(medium; [33]; unverified)
+
+回撤 22%，结果不可重复；原文未列公开支持链接。
+(medium; [33]; unverified)
+
+纸上不等于真钱；成本、滑点、机制切换侵蚀回测收益。
+(medium; [33]; unverified)
+
+reasoning 响应需 3–5 秒，多 agent 辩论增加延迟。
+(medium; [33]; unverified)
+
+日度投研可容忍，日内受影响；风控、路由需确定性代码。
+(medium; [33]; unverified)
+
+**Danelfin 公布可审计的分档回测，高分组多窗口跑赢 S&P。**
+(high; [13])
+
+原报告据此评为散户中证据最干净的筛选器；未列收益数字。
+(high; [13])
+
+“可审计”不是“已独立审计”，也不证明持续实盘超额。
+(medium; [13][33]; unverified)
+
+**Tickeron 自称机器人回报 150%–360%。**
+(medium; [21]; unverified)
+
+Double Agents 回测年化 169%–270%；无独立审计，不可采信。
+(medium; [21]; unverified)
+
+Kavout 自称“大幅跑赢 S&P”；单篇营销索引，无数字。
+(medium; [25]; unverified)
+
+Paramount 自称胜过 95% 产品，非收益率。
+(medium; [27]; unverified)
+
+Paramount 仅 AB Newswire 付费稿索引，采用内部基准。
+(medium; [27]; single-source)
+
+Intellectia 收益为回测/用户自述；评测附 disclaimer。
+(medium; [18]; unverified)
+
+AltIndex 单源营销，未列可验证业绩。
+(medium; [25]; single-source; unverified)
+
+Autopilot 未列收益；3M+ 用户、$1B+ 已投是规模宣传。
+(medium; [24]; unverified)
+
+2025 年初为 700k、$150M；原报告质疑短期约 4 倍增长。
+(medium; [24]; unverified)
+
+Morningstar/MarketWatch 的 2026 选股测试未列收益结果。
+(medium; [28])
+
+原报告视其为“AI 选股师”炒作样本，答案仅供娱乐。
+(medium; [28])
+
+**Options Alpha Agent 仅用 $100k 纸上账户。**
+(medium; [34]; unverified)
+
+作者承认没有方向性 edge；未列收益结果，不能当实盘证据。
+(medium; [34]; unverified)
+
+ai-hedge-fund、FinRL 等框架未提供经审计的持续实盘超额证据。
+(high; [34]; unverified)
+
+其他产品的功能可用性见对应小节；原文未列业绩的项目见对比表。
 
 ### 范围与证据
 
@@ -182,11 +287,7 @@ Alpaca 提供底层基础设施。 (high; [11])
 - 首 3 个月优惠 50%，即 5 折。 (high; [13])
 - 明确不退款；已打开官方定价页。 (high; [13])
 
-Danelfin 公布可审计的分档回测。 (high; [13])
-
-高分组在多个回测窗口跑赢 S&P。 (high; [13])
-
-原报告评为散户中证据最干净的筛选器；成熟，高置信度。 (high; [13])
+回测表现与证据限制见“表现：这些 agent 实际效果如何”。
 
 #### Trade Ideas
 
@@ -254,9 +355,7 @@ WallStreetZen 报 $132/年，或为近期调价；取发布者自述。 (medium;
 
 价格来自 5+ 一致次级信源，定价置信度中高。 (medium; [18])
 
-收益数字均为回测或用户自述，未验证。 (medium; [18]; unverified)
-
-官方评测也附 disclaimer；原报告按营销处理。 (medium; [18]; unverified)
+收益宣传及 disclaimer 见“表现：这些 agent 实际效果如何”。
 
 #### TrendSpider
 
@@ -287,11 +386,7 @@ WallStreetZen 报 $132/年，或为近期调价；取发布者自述。 (medium;
 - Expert：$250/月；模块化 add-on：$20–40/月。 (medium; [21])
 - 多家评测称定价结构混乱；多源一致，原置信度中。 (medium; [21])
 
-机器人自称回报 150%–360%。 (medium; [21]; unverified)
-
-Double Agents 回测年化 169%–270%。 (medium; [21]; unverified)
-
-均无独立审计；原报告认为不可采信，属营销。 (medium; [21]; unverified)
+回报宣传及审计缺口见“表现：这些 agent 实际效果如何”。
 
 #### Composer by SoFi
 
@@ -323,11 +418,7 @@ SoFi 强调 AI 构建规则策略，并非持续自主做交易决策。 (high; 
 
 还有提现、取消困难；原投诉置信度中。 (medium; [24])
 
-官方宣传 3M+ 用户、$1B+ 已投。 (medium; [24]; unverified)
-
-2025 年初为 700k 用户、$150M。 (medium; [24]; unverified)
-
-原报告质疑短期约 4 倍增长；数字未验证。 (medium; [24]; unverified)
+用户与资金规模宣传见“表现：这些 agent 实际效果如何”。
 
 #### Kavout 与 AltIndex
 
@@ -342,9 +433,7 @@ AltIndex 寻求财报前的信息差。 (medium; [25]; single-source)
 两者仅有索引，来自同篇 HowStuffWorks 营销文章。
 (medium; [25]; single-source)
 
-Kavout“大幅跑赢 S&P”的说法未验证。 (medium; [25]; unverified)
-
-原报告认为数据思路有意思，业绩宣传属营销。 (medium; [25]; unverified)
+业绩宣传及单源限制见“表现：这些 agent 实际效果如何”。
 
 #### Parqet
 
@@ -368,18 +457,12 @@ AI 解读仍可能出现幻觉。 (high; [26])
 
 自称 autonomous trading engine。 (medium; [27]; single-source)
 
-声称“outperform 95% of market products”，未验证。
-(medium; [27]; unverified)
-
-仅有 AB Newswire 付费稿索引，引用内部基准。 (medium; [27]; single-source)
-
-原报告按营销炒作处理。 (medium; [27]; single-source)
+内部基准宣传及付费稿证据限制见“表现：这些 agent 实际效果如何”。
 
 ### 开源 agents
 
-**适合学习研究；经审计的持续实盘超额证据为零。**
+**框架、数据层与比赛实例；效果证据见表现节。**
 
-- LLM：large language model。 (high)
 - 研究性质的原置信度高，已核实为研究工具。 (high)
 - 框架免费，model tokens 费用自理。 (high)
 
@@ -402,9 +485,7 @@ flowchart LR
 
 项目声明“for research, not financial advice”。 (high; unverified)
 
-原报告认定为研究工具，无经审计实盘超额证据。 (high; unverified)
-
-只建议纸上运行。 (high; unverified)
+实盘记录及可重复性限制见“表现：这些 agent 实际效果如何”。
 
 #### 其他框架与数据层
 
@@ -422,9 +503,7 @@ flowchart LR
 - FinRobot 用 LLM agents 自动生成 equity research 报告。 (medium; unverified)
 - FinGPT：金融 LLM 与情绪管线，约 20.9k stars。 (medium; unverified)
 
-这些框架适合学习研究，无经审计的持续实盘超额证据。 (high; unverified)
-
-原报告对“研究工具”的判断给高置信度。 (high; unverified)
+这些框架的业绩证据限制见“表现：这些 agent 实际效果如何”。
 
 #### Options Alpha Agent 实例
 
@@ -434,9 +513,7 @@ flowchart LR
 - 使用 defined-risk vertical spreads。 (medium; unverified)
 - 使用官方 command-line interface（CLI）。 (medium; unverified)
 
-该实例为 $100k 纸上账户。 (medium; unverified)
-
-作者承认没有方向性 edge。 (medium; unverified)
+账户性质及作者的效果判断见“表现：这些 agent 实际效果如何”。
 
 ### 通用助手
 
@@ -451,9 +528,7 @@ Morningstar/MarketWatch 于 2025-12 做选股测试。 (medium; [28])
 
 参与者：ChatGPT、Claude、Gemini、Grok。 (medium; [28])
 
-要求给出 2026 年具体股票配置。 (medium; [28])
-
-原报告视为“AI 选股师”炒作样本，答案仅供娱乐。 (medium; [28])
+要求给出 2026 年具体股票配置；效果判断见表现节。 (medium; [28])
 
 #### Perplexity
 
@@ -511,35 +586,9 @@ flowchart LR
 
 **金融错误、执行摩擦与不确定性仍然存在。**
 
-#### Saturn Artificial Authority 基准
-
-2026-09-21 发布；完整次级报道已核实。 (high; [1])
-
-18 个模型、121 道理财题，5 轮，10,000+ 回答。 (high; [1])
-
-平均准确率 43%，错误或不完整占 57%。 (high; [1])
-
-难题准确率仅 12%，包括交互税法；精确数字也容易出错。 (high; [1])
-
-最佳为 Claude Opus 5（reasoning），整体仍约错 40%。 (high; [1])
-
-其难题错误率 67%。 (high; [1])
-
-错误中 6.1% 为编造规则，2.3% 为使用过时法规。 (high; [1])
-
-错误与正确答案的语气同样自信。 (high; [1])
-
-免费模型失败率 63%，付费模型 49%。 (high; [1])
-
-最请不起投顾的人，反而得到更差的免费建议。 (high; [1])
-
 #### 延迟、成本与实盘交易
 
-reasoning 响应需 3–5 秒，辩论会增加延迟。 (medium; unverified)
-
-日度投研可容忍，日内执行时机受影响。 (medium; unverified)
-
-实盘风控与路由需 LLM 之外的确定性代码。 (medium; unverified)
+延迟、风控要求、纸上与实盘差距见“表现：这些 agent 实际效果如何”。
 
 订阅叠加：Intellectia $11.96/月、Danelfin $12–25/月。 (medium; [18][13])
 
@@ -548,14 +597,6 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 原报告中 ChatGPT/Perplexity 约 $20/月。 (medium; unverified)
 
 开源免费，但多 agent 的 tokens 贵，另加行情费。 (medium; unverified)
-
-一次 TradingAgents 实盘运行 30 天，收益 +7%。 (medium; unverified)
-
-同期 S&P 500 +4.5%；该实盘回撤 22%。 (medium; unverified)
-
-结果不可重复。 (medium; unverified)
-
-费用、滑点、市场机制变化会侵蚀回测收益。 (medium; unverified)
 
 隔离账户、明确确认、paper-only 门反映真钱自主交易的高风险。
 (medium; unverified)
@@ -585,7 +626,7 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 
 该数字仅有一个薄弱的 LinkedIn 来源。 (medium; [32]; single-source)
 
-回报宣传及证据限制见各产品小节。 (medium; [18][21][25][27]; unverified)
+回报宣传及证据限制见“表现：这些 agent 实际效果如何”。
 
 ### 实用选择
 
@@ -622,7 +663,7 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 ## 证据缺口
 
 - 可能改变结论：新 agents 仅有几周至几个月实盘历史，无独立审计。
-- 可能改变结论：持续实盘跑赢市场仍未证明。
+- 可能改变结论：持续实盘表现证据不足，见表现节。
 - 可能改变结论：原报告许多发现没有公开支持链接。
 - 不改变结论：原文“不到 4 个月”的日期矛盾，见“实用选择”。
 - 不改变结论：Intellectia 价格依赖 5+ 次级信源，原置信度中高。
@@ -630,7 +671,7 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 - 不改变结论：TrendSpider/Tickeron/Autopilot 官方价格页未打开。
 - 这三者采用一致的次级价格，原缺口说明给中置信度。
 - TrendSpider 的详细定价说明则给中高置信度，两者均保留。
-- 不改变结论：Kavout/Paramount 业绩与 $2.3B 数字仍未验证。
+- 不改变结论：业绩宣传见表现节；$2.3B 数字见风险小节。
 - 不改变结论：部分来源链接仅到域名，四个定价链接夹有编码文字。
 - 来源链接原样保留，不修复，不做新研究。
 - 缺失链接只保留具名来源，不编造链接。
@@ -638,7 +679,7 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 ## 来源
 
 <details>
-<summary>来源（32 项）</summary>
+<summary>来源（34 项）</summary>
 
 1. [Wealth Professional: Robinhood, Jun 2; Saturn, Sep 21](<http://wealthprofessional.ca>)（次级）
 2. [PYMNTS: Retail Investing Opens Up to AI Assistants, Aug 31](<http://pymnts.com>)（次级）
@@ -672,5 +713,7 @@ PortfolioPilot $20–29/月、Magnifi $8.25–14/月。 (medium; [15][16])
 30. Financial Industry Regulatory Authority: Notice 24-09（一级）
 31. North American Securities Administrators Association, Sep 2026（一级）
 32. LinkedIn: single hallucination-loss claim（次级）
+33. 原报告 source.md《局限与风险》：实盘记录、延迟与回测摩擦；未列公开链接
+34. 原报告 source.md《开源 AI 交易 agent》：框架与比赛实例；未列公开链接
 
 </details>
